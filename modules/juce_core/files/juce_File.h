@@ -858,6 +858,8 @@ public:
         /** The most likely place where a user might store their picture files. */
         userPicturesDirectory,
 
+        userDownloadsDirectory,
+
         /** The folder in which applications store their persistent user-specific settings.
             On Windows, this might be "\Documents and Settings\username\Application Data".
             On the Mac, it might be "~/Library". If you're going to store your settings in here,

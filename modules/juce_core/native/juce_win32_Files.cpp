@@ -621,6 +621,7 @@ File JUCE_CALLTYPE File::getSpecialLocation (const SpecialLocationType type)
         case userMusicDirectory:                csidlType = 0x0d; /*CSIDL_MYMUSIC*/ break;
         case userMoviesDirectory:               csidlType = 0x0e; /*CSIDL_MYVIDEO*/ break;
         case userPicturesDirectory:             csidlType = 0x27; /*CSIDL_MYPICTURES*/ break;
+        case userDownloadsDirectory:            break;
 
         case tempDirectory:
         {
@@ -649,6 +650,17 @@ File JUCE_CALLTYPE File::getSpecialLocation (const SpecialLocationType type)
         default:
             jassertfalse; // unknown type?
             return {};
+    }
+
+    if (type == userDownloadsDirectory)
+    {
+        wchar_t* downloadsDirStr;
+        SHGetKnownFolderPath(FOLDERID_Downloads, 0, nullptr, &downloadsDirStr);
+        if (String(downloadsDirStr) != "")
+        {
+            return File(String(downloadsDirStr));
+        }
+        return {};
     }
 
     return WindowsFileHelpers::getSpecialFolderPath (csidlType);
