@@ -1074,6 +1074,9 @@ public:
    #if JUCE_MAC || DOXYGEN
     /** OSX ONLY - Adds this file to the OSX dock */
     void addToDock() const;
+
+    /** OSX ONLY - Checks if the app has read/write permissions to this path. */
+    bool hasReadWritePermissions() const;
    #endif
 
     //==============================================================================

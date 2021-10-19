@@ -280,6 +280,13 @@ bool File::hasWriteAccess() const
     return false;
 }
 
+#if JUCE_MAC
+bool File::hasReadWritePermissions() const
+{
+    return hasWriteAccess() && (access(fullPath.toUTF8(), R_OK) == 0);
+}
+#endif
+
 static bool setFileModeFlags (const String& fullPath, mode_t flags, bool shouldSet) noexcept
 {
     juce_statStruct info;
