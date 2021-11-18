@@ -413,7 +413,7 @@ String Time::getUTCOffsetString (bool includeSemiColon) const
         return String::formatted (includeSemiColon ? "%+03d:%02d"
                                                    : "%+03d%02d",
                                   minutes / 60,
-                                  minutes % 60);
+                                  abs(minutes % 60));
     }
 
     return "Z";
