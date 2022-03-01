@@ -34,6 +34,14 @@ inline String msBuildEscape (String str)
     return str;
 }
 
+inline StringArray msBuildEscape (StringArray range)
+{
+    for (auto& i : range)
+        i = msBuildEscape (i);
+
+    return range;
+}
+
 //==============================================================================
 class MSVCProjectExporterBase   : public ProjectExporter
 {
@@ -310,12 +318,12 @@ public:
         }
 
     private:
-        ValueWithDefault warningLevelValue, warningsAreErrorsValue, prebuildCommandValue, postbuildCommandValue, generateDebugSymbolsValue,
-                         generateManifestValue, enableIncrementalLinkingValue, useRuntimeLibDLLValue, multiProcessorCompilationValue,
-                         intermediatesPathValue, characterSetValue, architectureTypeValue, fastMathValue, debugInformationFormatValue,
-                         pluginBinaryCopyStepValue;
+        ValueTreePropertyWithDefault warningLevelValue, warningsAreErrorsValue, prebuildCommandValue, postbuildCommandValue, generateDebugSymbolsValue,
+                                     generateManifestValue, enableIncrementalLinkingValue, useRuntimeLibDLLValue, multiProcessorCompilationValue,
+                                     intermediatesPathValue, characterSetValue, architectureTypeValue, fastMathValue, debugInformationFormatValue,
+                                     pluginBinaryCopyStepValue;
 
-        ValueWithDefault vstBinaryLocation, vst3BinaryLocation, rtasBinaryLocation, aaxBinaryLocation, unityPluginBinaryLocation;
+        ValueTreePropertyWithDefault vstBinaryLocation, vst3BinaryLocation, rtasBinaryLocation, aaxBinaryLocation, unityPluginBinaryLocation;
 
         Value architectureValueToListenTo;
 
@@ -508,7 +516,6 @@ public:
 
                         intdir->addTextElement (build_tools::windowsStylePath (intermediatesPath));
                     }
-
 
                     {
                         auto* targetName = props->createNewChildElement ("TargetName");
@@ -1332,23 +1339,25 @@ public:
             return librarySearchPaths;
         }
 
+        /*  Libraries specified in the Projucer don't get escaped automatically.
+            To include a special character in the name of a library,
+            you must use the appropriate escape code instead.
+            Module and shared code library names are not preprocessed.
+            Special characters in the names of these libraries will be toEscape
+            as appropriate.
+        */
         StringArray getExternalLibraries (const MSVCBuildConfiguration& config, const StringArray& otherLibs) const
         {
-            const auto sharedCodeLib = [&]() -> StringArray
-            {
-                if (type != SharedCodeTarget)
-                    if (auto* shared = getOwner().getSharedCodeTarget())
-                        return { shared->getBinaryNameWithSuffix (config, false) };
-
-                return {};
-            }();
-
             auto result = otherLibs;
-            result.addArray (getOwner().getModuleLibs());
-            result.addArray (sharedCodeLib);
 
             for (auto& i : result)
-                i = msBuildEscape (getOwner().replacePreprocessorTokens (config, i).trim());
+                i = getOwner().replacePreprocessorTokens (config, i).trim();
+
+            result.addArray (msBuildEscape (getOwner().getModuleLibs()));
+
+            if (type != SharedCodeTarget)
+                if (auto* shared = getOwner().getSharedCodeTarget())
+                    result.add (msBuildEscape (shared->getBinaryNameWithSuffix (config, false)));
 
             return result;
         }
@@ -1476,7 +1485,7 @@ public:
     bool launchProject() override
     {
        #if JUCE_WINDOWS
-        return getIDEProjectFile().startAsProcess();
+        return getSLNFile().startAsProcess();
        #else
         return false;
        #endif
@@ -1489,11 +1498,6 @@ public:
        #else
         return false;
        #endif
-    }
-
-    File getIDEProjectFile() const override
-    {
-        return getSLNFile();
     }
 
     void createExporterProperties (PropertyListBuilder& props) override
@@ -1600,12 +1604,12 @@ protected:
     mutable File rcFile, iconFile, packagesConfigFile;
     OwnedArray<MSVCTargetBase> targets;
 
-    ValueWithDefault IPPLibraryValue,
-                     IPP1ALibraryValue,
-                     MKL1ALibraryValue,
-                     platformToolsetValue,
-                     targetPlatformVersion,
-                     manifestFileValue;
+    ValueTreePropertyWithDefault IPPLibraryValue,
+                                 IPP1ALibraryValue,
+                                 MKL1ALibraryValue,
+                                 platformToolsetValue,
+                                 targetPlatformVersion,
+                                 manifestFileValue;
 
     File getProjectFile (const String& extension, const String& target) const
     {

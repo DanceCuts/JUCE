@@ -248,7 +248,8 @@ public:
     NSOpenGLView* view = nil;
     ReferenceCountedObjectPtr<ReferenceCountedObject> viewAttachment;
     double lastSwapTime = 0;
-    int minSwapTimeMs = 0, underrunCounter = 0, numFramesPerSwap = 0;
+    std::atomic<int> minSwapTimeMs { 0 };
+    int underrunCounter = 0, numFramesPerSwap = 0;
     double videoRefreshPeriodS = 1.0 / 60.0;
 
     //==============================================================================
@@ -256,9 +257,10 @@ public:
     {
         MouseForwardingNSOpenGLViewClass()  : ObjCClass<NSOpenGLView> ("JUCEGLView_")
         {
-            addMethod (@selector (rightMouseDown:),      rightMouseDown);
-            addMethod (@selector (rightMouseUp:),        rightMouseUp);
-            addMethod (@selector (acceptsFirstMouse:),   acceptsFirstMouse);
+            addMethod (@selector (rightMouseDown:),       rightMouseDown);
+            addMethod (@selector (rightMouseUp:),         rightMouseUp);
+            addMethod (@selector (acceptsFirstMouse:),    acceptsFirstMouse);
+            addMethod (@selector (accessibilityHitTest:), accessibilityHitTest);
 
             registerClass();
         }
@@ -267,6 +269,7 @@ public:
         static void rightMouseDown (id self, SEL, NSEvent* ev)      { [[(NSOpenGLView*) self superview] rightMouseDown: ev]; }
         static void rightMouseUp   (id self, SEL, NSEvent* ev)      { [[(NSOpenGLView*) self superview] rightMouseUp:   ev]; }
         static BOOL acceptsFirstMouse (id, SEL, NSEvent*)           { return YES; }
+        static id accessibilityHitTest (id self, SEL, NSPoint p)    { return [[(NSOpenGLView*) self superview] accessibilityHitTest: p]; }
     };
 
 

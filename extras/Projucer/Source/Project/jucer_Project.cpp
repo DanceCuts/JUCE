@@ -826,6 +826,14 @@ void Project::updateJUCEPathWarning()
     }
 }
 
+void Project::updateCodeWarning (Identifier identifier, String value)
+{
+    if (value.length() != 4 || value.toStdString().size() != 4)
+        addProjectMessage (identifier, {});
+    else
+        removeProjectMessage (identifier);
+}
+
 void Project::updateModuleWarnings()
 {
     auto& modules = getEnabledModules();
@@ -1091,6 +1099,14 @@ void Project::valueTreePropertyChanged (ValueTree& tree, const Identifier& prope
         {
             updateModuleWarnings();
         }
+        else if (property == Ids::pluginCode)
+        {
+            updateCodeWarning (ProjectMessages::Ids::pluginCodeInvalid, pluginCodeValue.get());
+        }
+        else if (property == Ids::pluginManufacturerCode)
+        {
+            updateCodeWarning (ProjectMessages::Ids::manufacturerCodeInvalid, pluginManufacturerCodeValue.get());
+        }
     }
 
     changed();
@@ -1314,7 +1330,7 @@ void Project::createPropertyEditors (PropertyListBuilder& props)
                "which may simplify the includes in the project.");
 
     props.add (new ChoicePropertyComponent (addUsingNamespaceToJuceHeader, "Add \"using namespace juce\" to JuceHeader.h"),
-               "If enabled, the JuceHeader.h will include a \"using namepace juce\" statement. If disabled, "
+               "If enabled, the JuceHeader.h will include a \"using namespace juce\" statement. If disabled, "
                "no such statement will be included. This setting used to be enabled by default, but it "
                "is recommended to leave it disabled for new projects.");
 
@@ -2000,7 +2016,7 @@ ValueTree Project::getConfigNode()
     return projectRoot.getOrCreateChildWithName (Ids::JUCEOPTIONS, nullptr);
 }
 
-ValueWithDefault Project::getConfigFlag (const String& name)
+ValueTreePropertyWithDefault Project::getConfigFlag (const String& name)
 {
     auto configNode = getConfigNode();
 
@@ -2578,8 +2594,10 @@ StringPairArray Project::getAudioPluginFlags() const
         uint32 hexRepresentation = 0;
 
         for (int i = 0; i < 4; ++i)
-            hexRepresentation = (hexRepresentation << 8u)
-                                | (static_cast<unsigned int> (fourCharCode[i]) & 0xffu);
+        {
+            const auto character = (unsigned int) (i < fourCharCode.length() ? fourCharCode[i] : 0);
+            hexRepresentation = (hexRepresentation << 8u) | (character & 0xffu);
+        }
 
         return "0x" + String::toHexString (static_cast<int> (hexRepresentation));
     };

@@ -131,8 +131,7 @@ public:
         : AudioProcessorHolder (activePlugins.size() + activeUIs.size() == 0),
           MusicDeviceBase (component,
                            (UInt32) AudioUnitHelpers::getBusCountForWrapper (*juceFilter, true),
-                           (UInt32) AudioUnitHelpers::getBusCountForWrapper (*juceFilter, false)),
-          mapper (*juceFilter)
+                           (UInt32) AudioUnitHelpers::getBusCountForWrapper (*juceFilter, false))
     {
         inParameterChangedCallback = false;
 
@@ -208,7 +207,7 @@ public:
         if ((err = MusicDeviceBase::Initialize()) != noErr)
             return err;
 
-        mapper.alloc();
+        mapper.alloc (*juceFilter);
         pulledSucceeded.calloc (static_cast<size_t> (AudioUnitHelpers::getBusCountForWrapper (*juceFilter, true)));
 
         prepareToPlay();
@@ -1347,10 +1346,10 @@ public:
                 if (pulledSucceeded[busIdx])
                     audioBuffer.set (busIdx, GetInput ((UInt32) busIdx)->GetBufferList(), mapper.get (true, busIdx));
                 else
-                    audioBuffer.clearInputBus (busIdx);
+                    audioBuffer.clearInputBus (busIdx, (int) nFrames);
             }
 
-            audioBuffer.clearUnusedChannels();
+            audioBuffer.clearUnusedChannels ((int) nFrames);
         }
 
         // swap midi buffers

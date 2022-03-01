@@ -11,7 +11,7 @@ elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQU
         -Wsign-conversion -Wbool-conversion -Wextra-semi -Wunreachable-code
         -Wcast-align -Wshift-sign-overflow -Wno-missing-field-initializers
         -Wnullable-to-nonnull-conversion -Wno-ignored-qualifiers -Wswitch-enum
-        -Wpedantic
+        -Wpedantic -Wdeprecated
         $<$<OR:$<COMPILE_LANGUAGE:CXX>,$<COMPILE_LANGUAGE:OBJCXX>>:
             -Wzero-as-null-pointer-constant -Wunused-private-field
             -Woverloaded-virtual -Wreorder
@@ -53,9 +53,9 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_FRONTEND_VARIA
         $<$<CONFIG:Release>:$<IF:$<STREQUAL:"${CMAKE_CXX_COMPILER_ID}","MSVC">,-GL,-flto>>)
     target_link_libraries(juce_recommended_lto_flags INTERFACE
         $<$<CONFIG:Release>:$<$<STREQUAL:"${CMAKE_CXX_COMPILER_ID}","MSVC">:-LTCG>>)
-elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-       OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-       OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"))
+elseif((NOT MINGW) AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+                     OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+                     OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
     target_compile_options(juce_recommended_lto_flags INTERFACE $<$<CONFIG:Release>:-flto>)
     target_link_libraries(juce_recommended_lto_flags INTERFACE $<$<CONFIG:Release>:-flto>)
 endif()

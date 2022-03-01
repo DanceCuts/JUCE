@@ -427,6 +427,22 @@ attributes directly to these creation functions, rather than adding them later.
   plist if `APP_SANDBOX_ENABLED` is `TRUE`. Each key should be in the form `com.apple.security.*`
   where `*` is a specific entitlement.
 
+`APP_SANDBOX_FILE_ACCESS_HOME_RO`
+- A set of space-separated paths that will be added to this target's entitlements plist for
+  accessing read-only paths relative to the home directory if `APP_SANDBOX_ENABLED` is `TRUE`.
+
+`APP_SANDBOX_FILE_ACCESS_HOME_RW`
+- A set of space-separated paths that will be added to this target's entitlements plist for
+  accessing read/write paths relative to the home directory if `APP_SANDBOX_ENABLED` is `TRUE`.
+
+`APP_SANDBOX_FILE_ACCESS_ABS_RO`
+- A set of space-separated paths that will be added to this target's entitlements plist for
+  accessing read-only absolute paths if `APP_SANDBOX_ENABLED` is `TRUE`.
+
+`APP_SANDBOX_FILE_ACCESS_ABS_RW`
+- A set of space-separated paths that will be added to this target's entitlements plist for
+  accessing read/write absolute paths if `APP_SANDBOX_ENABLED` is `TRUE`.
+
 `PLIST_TO_MERGE`
 - A string to insert into an app/plugin's Info.plist.
 
@@ -539,7 +555,7 @@ attributes directly to these creation functions, rather than adding them later.
 `USE_LEGACY_COMPATIBILITY_PLUGIN_CODE`
 - May be either TRUE or FALSE (defaults to FALSE). If TRUE, will override the value of the
   preprocessor definition "JucePlugin_ManufacturerCode" with the hex equivalent of "proj". This
-  option exists to maintain compatiblity with a previous, buggy version of JUCE's CMake support
+  option exists to maintain compatibility with a previous, buggy version of JUCE's CMake support
   which mishandled the manufacturer code property. Most projects should leave this option set to
   its default value.
 
