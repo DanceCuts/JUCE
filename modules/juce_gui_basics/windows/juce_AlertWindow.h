@@ -75,6 +75,9 @@ public:
     */
     void setMessage (const String& message);
 
+    //idiots
+    String getMessage() const { return text; }
+
     //==============================================================================
     /** Adds a button to the window.
 
