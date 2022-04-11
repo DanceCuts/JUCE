@@ -88,6 +88,9 @@ public:
     void addXY (ValueType xToAdd, ValueType yToAdd) noexcept           { x += xToAdd; y += yToAdd; }
 
     //==============================================================================
+    /** Returns a new point with a pair of coordinates added to the current value. */
+    constexpr Point withAddXY(ValueType xToAdd, ValueType yToAdd) const noexcept { return Point(x + xToAdd, y + yToAdd); }
+
     /** Returns a point with a given offset from this one. */
     constexpr Point translated (ValueType deltaX, ValueType deltaY) const noexcept    { return Point (x + deltaX, y + deltaY); }
 
