@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2020 - Raw Material Software Limited
+   Copyright (c) 2022 - Raw Material Software Limited
 
    JUCE is an open source library subject to commercial or open-source
    licensing.
@@ -288,12 +288,11 @@ bool File::hasWriteAccess() const
     return false;
 }
 
-#if JUCE_MAC
-bool File::hasReadWritePermissions() const
+bool File::hasReadAccess() const
 {
-    return hasWriteAccess() && (access(fullPath.toUTF8(), R_OK) == 0);
+    return fullPath.isNotEmpty()
+           && access (fullPath.toUTF8(), R_OK) == 0;
 }
-#endif
 
 static bool setFileModeFlags (const String& fullPath, mode_t flags, bool shouldSet) noexcept
 {
