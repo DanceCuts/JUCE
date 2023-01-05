@@ -262,7 +262,7 @@ private:
 
     void checkCoInitialiseCalled()
     {
-        [[maybe_unused]] const auto result = CoInitialize (nullptr);
+        ignoreUnused (CoInitialize (nullptr));
     }
 
     void scanFileForDetails()

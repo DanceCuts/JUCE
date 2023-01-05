@@ -948,11 +948,6 @@ TextEditor::TextEditor (const String& name, juce_wchar passwordChar)
 
 TextEditor::~TextEditor()
 {
-    giveAwayKeyboardFocus();
-
-    if (auto* peer = getPeer())
-        peer->refreshTextInputTarget();
-
     textValue.removeListener (textHolder);
     textValue.referTo (Value());
 
@@ -1245,7 +1240,7 @@ void TextEditor::setText (const String& newText, bool sendTextChangeMessage)
         textValue = newText;
 
         auto oldCursorPos = caretPosition;
-        auto cursorWasAtEnd = oldCursorPos >= getTotalNumChars();
+        bool cursorWasAtEnd = oldCursorPos >= getTotalNumChars();
 
         clearInternal (nullptr);
         insert (newText, 0, currentFont, findColour (textColourId), nullptr, caretPosition);
@@ -1381,23 +1376,26 @@ void TextEditor::repaintText (Range<int> range)
 }
 
 //==============================================================================
-void TextEditor::moveCaret (const int newCaretPos)
+void TextEditor::moveCaret (int newCaretPos)
 {
-    const auto clamped = std::clamp (newCaretPos, 0, getTotalNumChars());
+    if (newCaretPos < 0)
+        newCaretPos = 0;
+    else
+        newCaretPos = jmin (newCaretPos, getTotalNumChars());
 
-    if (clamped == getCaretPosition())
-        return;
+    if (newCaretPos != getCaretPosition())
+    {
+        caretPosition = newCaretPos;
 
-    caretPosition = clamped;
+        if (hasKeyboardFocus (false))
+            textHolder->restartTimer();
 
-    if (hasKeyboardFocus (false))
-        textHolder->restartTimer();
+        scrollToMakeSureCursorIsVisible();
+        updateCaretPosition();
 
-    scrollToMakeSureCursorIsVisible();
-    updateCaretPosition();
-
-    if (auto* handler = getAccessibilityHandler())
-        handler->notifyAccessibilityEvent (AccessibilityEvent::textChanged);
+        if (auto* handler = getAccessibilityHandler())
+            handler->notifyAccessibilityEvent (AccessibilityEvent::textChanged);
+    }
 }
 
 int TextEditor::getCaretPosition() const
@@ -2306,11 +2304,6 @@ void TextEditor::setTemporaryUnderlining (const Array<Range<int>>& newUnderlined
 {
     underlinedSections = newUnderlinedSections;
     repaint();
-}
-
-TextInputTarget::VirtualKeyboardType TextEditor::getKeyboardType()
-{
-    return passwordCharacter != 0 ? passwordKeyboard : keyboardType;
 }
 
 //==============================================================================

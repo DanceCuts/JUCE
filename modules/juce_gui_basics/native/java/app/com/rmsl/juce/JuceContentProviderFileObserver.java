@@ -34,6 +34,7 @@ public final class JuceContentProviderFileObserver extends FileObserver
     public JuceContentProviderFileObserver (long hostToUse, String path, int mask)
     {
         super (path, mask);
+
         host = hostToUse;
     }
 

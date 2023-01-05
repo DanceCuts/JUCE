@@ -35,7 +35,8 @@ namespace
 
         uint32 index = 0;
         BOOL exists = false;
-        [[maybe_unused]] auto hr = names->FindLocaleName (L"en-us", &index, &exists);
+        auto hr = names->FindLocaleName (L"en-us", &index, &exists);
+        ignoreUnused (hr);
 
         if (! exists)
             index = 0;
@@ -151,7 +152,8 @@ public:
         jassert (fontCollection != nullptr);
 
         uint32 fontIndex = 0;
-        [[maybe_unused]] auto hr = fontCollection->FindFamilyName (font.getTypefaceName().toWideCharPointer(), &fontIndex, &fontFound);
+        auto hr = fontCollection->FindFamilyName (font.getTypefaceName().toWideCharPointer(), &fontIndex, &fontFound);
+        ignoreUnused (hr);
 
         if (! fontFound)
             fontIndex = 0;

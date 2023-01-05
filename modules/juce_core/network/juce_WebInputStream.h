@@ -107,7 +107,11 @@ class JUCE_API WebInputStream  : public InputStream
 
             @returns true to continue or false to cancel the upload
         */
-        virtual bool postDataSendProgress (WebInputStream& request, int bytesSent, int totalBytes);
+        virtual bool postDataSendProgress (WebInputStream& request, int bytesSent, int totalBytes)
+        {
+            ignoreUnused (request, bytesSent, totalBytes);
+            return true;
+        }
     };
 
     /** Wait until the first byte is ready for reading.

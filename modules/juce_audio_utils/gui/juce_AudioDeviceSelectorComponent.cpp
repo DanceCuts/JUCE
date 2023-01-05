@@ -1193,18 +1193,11 @@ void AudioDeviceSelectorComponent::updateAllControls()
 
 void AudioDeviceSelectorComponent::handleBluetoothButton()
 {
+    if (! RuntimePermissions::isGranted (RuntimePermissions::bluetoothMidi))
+        RuntimePermissions::request (RuntimePermissions::bluetoothMidi, nullptr);
+
     if (RuntimePermissions::isGranted (RuntimePermissions::bluetoothMidi))
-    {
         BluetoothMidiDevicePairingDialogue::open();
-    }
-    else
-    {
-        RuntimePermissions::request (RuntimePermissions::bluetoothMidi, [] (auto)
-        {
-            if (RuntimePermissions::isGranted (RuntimePermissions::bluetoothMidi))
-                BluetoothMidiDevicePairingDialogue::open();
-        });
-    }
 }
 
 ListBox* AudioDeviceSelectorComponent::getMidiInputSelectorListBox() const noexcept

@@ -429,8 +429,9 @@ struct PushNotifications::Pimpl : private PushNotificationsDelegate
         [[NSUserNotificationCenter defaultUserNotificationCenter] removeDeliveredNotification: nsNotification];
     }
 
-    void setupChannels ([[maybe_unused]] const Array<ChannelGroup>& groups, [[maybe_unused]] const Array<Channel>& channels)
+    void setupChannels (const Array<ChannelGroup>& groups, const Array<Channel>& channels)
     {
+        ignoreUnused (groups, channels);
     }
 
     void getPendingLocalNotifications() const
@@ -493,8 +494,9 @@ struct PushNotifications::Pimpl : private PushNotificationsDelegate
         owner.listeners.call ([&] (Listener& l) { l.deviceTokenRefreshed (deviceToken); });
     }
 
-    void failedToRegisterForRemoteNotifications ([[maybe_unused]] NSError* error) override
+    void failedToRegisterForRemoteNotifications (NSError* error) override
     {
+        ignoreUnused (error);
         deviceToken.clear();
     }
 
@@ -504,8 +506,9 @@ struct PushNotifications::Pimpl : private PushNotificationsDelegate
         owner.listeners.call ([&] (Listener& l) { l.handleNotification (true, n); });
     }
 
-    void didDeliverNotification ([[maybe_unused]] NSUserNotification* notification) override
+    void didDeliverNotification (NSUserNotification* notification) override
     {
+        ignoreUnused (notification);
     }
 
     void didActivateNotification (NSUserNotification* notification) override
@@ -537,16 +540,18 @@ struct PushNotifications::Pimpl : private PushNotificationsDelegate
 
     bool shouldPresentNotification (NSUserNotification*) override { return true; }
 
-    void subscribeToTopic ([[maybe_unused]] const String& topic)     {}
-    void unsubscribeFromTopic ([[maybe_unused]] const String& topic) {}
+    void subscribeToTopic (const String& topic)     { ignoreUnused (topic); }
+    void unsubscribeFromTopic (const String& topic) { ignoreUnused (topic); }
 
-    void sendUpstreamMessage ([[maybe_unused]] const String& serverSenderId,
-                              [[maybe_unused]] const String& collapseKey,
-                              [[maybe_unused]] const String& messageId,
-                              [[maybe_unused]] const String& messageType,
-                              [[maybe_unused]] int timeToLive,
-                              [[maybe_unused]] const StringPairArray& additionalData)
+    void sendUpstreamMessage (const String& serverSenderId,
+                              const String& collapseKey,
+                              const String& messageId,
+                              const String& messageType,
+                              int timeToLive,
+                              const StringPairArray& additionalData)
     {
+        ignoreUnused (serverSenderId, collapseKey, messageId, messageType);
+        ignoreUnused (timeToLive, additionalData);
     }
 
 private:

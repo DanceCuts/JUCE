@@ -43,7 +43,14 @@ public:
     Iterator() noexcept = default;
 
     /** Creates an iterator pointing at `ptr`. */
-    explicit Iterator (const uint32_t* ptr, size_t bytes) noexcept;
+    explicit Iterator (const uint32_t* ptr, size_t bytes) noexcept
+        : view (ptr)
+       #if JUCE_DEBUG
+        , bytesRemaining (bytes)
+       #endif
+    {
+        ignoreUnused (bytes);
+    }
 
     using difference_type    = std::iterator_traits<const uint32_t*>::difference_type;
     using value_type         = View;
@@ -117,7 +124,7 @@ private:
    #endif
 };
 
-} // namespace universal_midi_packets
-} // namespace juce
+}
+}
 
 #endif

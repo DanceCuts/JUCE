@@ -721,7 +721,8 @@ private:
     {
         using namespace AiffFileHelpers;
 
-        [[maybe_unused]] const bool couldSeekOk = output->setPosition (headerPosition);
+        const bool couldSeekOk = output->setPosition (headerPosition);
+        ignoreUnused (couldSeekOk);
 
         // if this fails, you've given it an output stream that can't seek! It needs
         // to be able to seek back to write the header

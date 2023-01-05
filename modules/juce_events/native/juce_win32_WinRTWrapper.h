@@ -30,7 +30,7 @@ public:
     ~WinRTWrapper();
     bool isInitialised() const noexcept  { return initialised; }
 
-    JUCE_DECLARE_SINGLETON (WinRTWrapper, false)
+    JUCE_DECLARE_SINGLETON (WinRTWrapper, true)
 
     //==============================================================================
     template <class ComClass>

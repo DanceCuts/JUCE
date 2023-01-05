@@ -244,8 +244,8 @@ private:
 
         glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorBufferHandle);
 
-        [[maybe_unused]] bool ok = [context.get() renderbufferStorage: GL_RENDERBUFFER fromDrawable: glLayer];
-        jassert (ok);
+        bool ok = [context.get() renderbufferStorage: GL_RENDERBUFFER fromDrawable: glLayer];
+        jassert (ok); ignoreUnused (ok);
 
         GLint width, height;
         glGetRenderbufferParameteriv (GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);

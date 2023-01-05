@@ -340,7 +340,7 @@ void AudioProcessor::removeListener (AudioProcessorListener* listenerToRemove)
 
 void AudioProcessor::setPlayConfigDetails (int newNumIns, int newNumOuts, double newSampleRate, int newBlockSize)
 {
-    [[maybe_unused]] bool success = true;
+    bool success = true;
 
     if (getTotalNumInputChannels() != newNumIns)
         success &= setChannelLayoutOfBus (true,  0, AudioChannelSet::canonicalChannelSet (newNumIns));
@@ -362,6 +362,7 @@ void AudioProcessor::setPlayConfigDetails (int newNumIns, int newNumOuts, double
     jassert (success && newNumIns == getTotalNumInputChannels() && newNumOuts == getTotalNumOutputChannels());
 
     setRateAndBufferSizeDetails (newSampleRate, newBlockSize);
+    ignoreUnused (success);
 }
 
 void AudioProcessor::setRateAndBufferSizeDetails (double newSampleRate, int newBlockSize) noexcept
@@ -441,8 +442,10 @@ void AudioProcessor::validateParameter (AudioProcessorParameter* param)
    #endif
 }
 
-void AudioProcessor::checkForDuplicateTrimmedParamID ([[maybe_unused]] AudioProcessorParameter* param)
+void AudioProcessor::checkForDuplicateTrimmedParamID (AudioProcessorParameter* param)
 {
+    ignoreUnused (param);
+
    #if JUCE_DEBUG && ! JUCE_DISABLE_CAUTIOUS_PARAMETER_ID_CHECKING
     if (auto* withID = dynamic_cast<AudioProcessorParameterWithID*> (param))
     {
@@ -473,8 +476,10 @@ void AudioProcessor::checkForDuplicateTrimmedParamID ([[maybe_unused]] AudioProc
    #endif
 }
 
-void AudioProcessor::checkForDuplicateParamID ([[maybe_unused]] AudioProcessorParameter* param)
+void AudioProcessor::checkForDuplicateParamID (AudioProcessorParameter* param)
 {
+    ignoreUnused (param);
+
    #if JUCE_DEBUG
     if (auto* withID = dynamic_cast<AudioProcessorParameterWithID*> (param))
     {
@@ -486,8 +491,10 @@ void AudioProcessor::checkForDuplicateParamID ([[maybe_unused]] AudioProcessorPa
    #endif
 }
 
-void AudioProcessor::checkForDuplicateGroupIDs ([[maybe_unused]] const AudioProcessorParameterGroup& newGroup)
+void AudioProcessor::checkForDuplicateGroupIDs (const AudioProcessorParameterGroup& newGroup)
 {
+    ignoreUnused (newGroup);
+
    #if JUCE_DEBUG
     auto groups = newGroup.getSubgroups (true);
     groups.add (&newGroup);
@@ -591,9 +598,10 @@ void AudioProcessor::processBypassed (AudioBuffer<floatType>& buffer, MidiBuffer
 void AudioProcessor::processBlockBypassed (AudioBuffer<float>&  buffer, MidiBuffer& midi)    { processBypassed (buffer, midi); }
 void AudioProcessor::processBlockBypassed (AudioBuffer<double>& buffer, MidiBuffer& midi)    { processBypassed (buffer, midi); }
 
-void AudioProcessor::processBlock ([[maybe_unused]] AudioBuffer<double>& buffer,
-                                   [[maybe_unused]] MidiBuffer& midiMessages)
+void AudioProcessor::processBlock (AudioBuffer<double>& buffer, MidiBuffer& midiMessages)
 {
+    ignoreUnused (buffer, midiMessages);
+
     // If you hit this assertion then either the caller called the double
     // precision version of processBlock on a processor which does not support it
     // (i.e. supportsDoublePrecisionProcessing() returns false), or the implementation
@@ -1484,9 +1492,6 @@ AudioProcessorParameter* AudioProcessor::getParamChecked (int index) const
     jassert (p != nullptr);
     return p;
 }
-
-bool AudioProcessor::canAddBus ([[maybe_unused]] bool isInput) const                     { return false; }
-bool AudioProcessor::canRemoveBus ([[maybe_unused]] bool isInput) const                  { return false; }
 
 JUCE_END_IGNORE_WARNINGS_GCC_LIKE
 JUCE_END_IGNORE_WARNINGS_MSVC

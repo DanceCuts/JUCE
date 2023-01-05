@@ -3028,8 +3028,10 @@ public:
     }
 
     //==============================================================================
-    void mouseDown ([[maybe_unused]] const MouseEvent& e) override
+    void mouseDown (const MouseEvent& e) override
     {
+        ignoreUnused (e);
+
        #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
         toFront (true);
        #endif
@@ -3440,7 +3442,7 @@ AudioProcessorEditor* VSTPluginInstance::createEditor()
    #endif
 }
 
-bool VSTPluginInstance::updateSizeFromEditor ([[maybe_unused]] int w, [[maybe_unused]] int h)
+bool VSTPluginInstance::updateSizeFromEditor (int w, int h)
 {
    #if ! JUCE_IOS && ! JUCE_ANDROID
     if (auto* editor = dynamic_cast<VSTPluginWindow*> (getActiveEditor()))

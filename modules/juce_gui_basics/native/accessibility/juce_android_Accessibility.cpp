@@ -297,13 +297,21 @@ public:
         {
             const auto scale = Desktop::getInstance().getDisplays().getPrimaryDisplay()->scale;
 
-            LocalRef<jobject> screenBounds (makeAndroidRect (accessibilityHandler.getComponent().getScreenBounds() * scale));
+            const auto screenBounds = accessibilityHandler.getComponent().getScreenBounds() * scale;
 
-            env->CallVoidMethod (info, AndroidAccessibilityNodeInfo.setBoundsInScreen, screenBounds.get());
+            LocalRef<jobject> rect (env->NewObject (AndroidRect, AndroidRect.constructor,
+                                                    screenBounds.getX(),     screenBounds.getY(),
+                                                    screenBounds.getRight(), screenBounds.getBottom()));
 
-            LocalRef<jobject> boundsInParent (makeAndroidRect (accessibilityHandler.getComponent().getBoundsInParent() * scale));
+            env->CallVoidMethod (info, AndroidAccessibilityNodeInfo.setBoundsInScreen, rect.get());
 
-            env->CallVoidMethod (info, AndroidAccessibilityNodeInfo.setBoundsInParent, boundsInParent.get());
+            const auto boundsInParent = accessibilityHandler.getComponent().getBoundsInParent() * scale;
+
+            rect = LocalRef<jobject> (env->NewObject (AndroidRect, AndroidRect.constructor,
+                                                      boundsInParent.getX(),     boundsInParent.getY(),
+                                                      boundsInParent.getRight(), boundsInParent.getBottom()));
+
+            env->CallVoidMethod (info, AndroidAccessibilityNodeInfo.setBoundsInParent, rect.get());
         }
 
         const auto state = accessibilityHandler.getCurrentState();

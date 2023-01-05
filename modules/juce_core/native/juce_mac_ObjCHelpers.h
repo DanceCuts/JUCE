@@ -342,6 +342,15 @@ namespace detail
     {
         return joinCompileTimeStr (v, makeCompileTimeStr (others...));
     }
+
+    template <typename Functor, typename Return, typename... Args>
+    static constexpr auto toFnPtr (Functor functor, Return (Functor::*) (Args...) const)
+    {
+        return static_cast<Return (*) (Args...)> (functor);
+    }
+
+    template <typename Functor>
+    static constexpr auto toFnPtr (Functor functor) { return toFnPtr (functor, &Functor::operator()); }
 } // namespace detail
 
 //==============================================================================
@@ -382,12 +391,12 @@ struct ObjCClass
     template <typename Type>
     void addIvar (const char* name)
     {
-        [[maybe_unused]] BOOL b = class_addIvar (cls, name, sizeof (Type), (uint8_t) rint (log2 (sizeof (Type))), @encode (Type));
-        jassert (b);
+        BOOL b = class_addIvar (cls, name, sizeof (Type), (uint8_t) rint (log2 (sizeof (Type))), @encode (Type));
+        jassert (b); ignoreUnused (b);
     }
 
     template <typename Fn>
-    void addMethod (SEL selector, Fn callbackFn) { addMethod (selector, toFnPtr (callbackFn)); }
+    void addMethod (SEL selector, Fn callbackFn) { addMethod (selector, detail::toFnPtr (callbackFn)); }
 
     template <typename Result, typename... Args>
     void addMethod (SEL selector, Result (*callbackFn) (id, SEL, Args...))
@@ -399,8 +408,8 @@ struct ObjCClass
 
     void addProtocol (Protocol* protocol)
     {
-        [[maybe_unused]] BOOL b = class_addProtocol (cls, protocol);
-        jassert (b);
+        BOOL b = class_addProtocol (cls, protocol);
+        jassert (b); ignoreUnused (b);
     }
 
     template <typename ReturnType, typename... Params>

@@ -85,9 +85,11 @@ namespace
                                                    &cfPlugInInterface,
                                                    &score) == kIOReturnSuccess)
             {
-                [[maybe_unused]] HRESULT hr = (*cfPlugInInterface)->QueryInterface (cfPlugInInterface,
-                                                                                    CFUUIDGetUUIDBytes (kIOHIDDeviceInterfaceID),
-                                                                                    device);
+                HRESULT hr = (*cfPlugInInterface)->QueryInterface (cfPlugInInterface,
+                                                                   CFUUIDGetUUIDBytes (kIOHIDDeviceInterfaceID),
+                                                                   device);
+
+                ignoreUnused (hr);
 
                 (*cfPlugInInterface)->Release (cfPlugInInterface);
             }

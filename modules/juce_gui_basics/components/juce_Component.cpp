@@ -123,32 +123,47 @@ public:
     template <typename EventMethod, typename... Params>
     static void sendMouseEvent (HierarchyChecker& checker, EventMethod&& eventMethod, Params&&... params)
     {
-        const auto callListeners = [&] (auto& parentComp, const auto findNumListeners)
+        auto* parent = checker.nearestNonNullParent();
+
+        if (parent == nullptr)
+            return;
+
+        if (auto* list = parent->mouseListeners.get())
         {
-            if (auto* list = parentComp.mouseListeners.get())
+            for (int i = list->listeners.size(); --i >= 0;)
             {
-                const WeakReference safePointer { &parentComp };
+                (list->listeners.getUnchecked (i)->*eventMethod) (checker.eventWithNearestParent(), params...);
 
-                for (int i = findNumListeners (*list); --i >= 0; i = jmin (i, findNumListeners (*list)))
+                if (checker.shouldBailOut())
+                    return;
+
+                i = jmin (i, list->listeners.size());
+            }
+        }
+
+        for (Component* p = checker.nearestNonNullParent()->parentComponent; p != nullptr; p = p->parentComponent)
+        {
+            if (auto* list = p->mouseListeners.get())
+            {
+                if (list->numDeepMouseListeners > 0)
                 {
-                    (list->listeners.getUnchecked (i)->*eventMethod) (checker.eventWithNearestParent(), params...);
+                    const auto shouldBailOut = [&checker, safePointer = WeakReference { p }]
+                    {
+                        return checker.shouldBailOut() || safePointer == nullptr;
+                    };
 
-                    if (checker.shouldBailOut() || safePointer == nullptr)
-                        return false;
+                    for (int i = list->numDeepMouseListeners; --i >= 0;)
+                    {
+                        (list->listeners.getUnchecked(i)->*eventMethod) (checker.eventWithNearestParent(), params...);
+
+                        if (shouldBailOut())
+                            return;
+
+                        i = jmin (i, list->numDeepMouseListeners);
+                    }
                 }
             }
-
-            return true;
-        };
-
-        if (auto* parent = checker.nearestNonNullParent())
-            if (! callListeners (*parent, [] (auto& list) { return list.listeners.size(); }))
-                return;
-
-        if (auto* parent = checker.nearestNonNullParent())
-            for (Component* p = parent->parentComponent; p != nullptr; p = p->parentComponent)
-                if (! callListeners (*p, [] (auto& list) { return list.numDeepMouseListeners; }))
-                    return;
+        }
     }
 
 private:
@@ -2568,8 +2583,7 @@ void Component::internalMouseUp (MouseInputSource source, const PointerState& re
     // check for double-click
     if (me.getNumberOfClicks() >= 2)
     {
-        if (checker.nearestNonNullParent() == this)
-            mouseDoubleClick (checker.eventWithNearestParent());
+        mouseDoubleClick (checker.eventWithNearestParent());
 
         if (checker.shouldBailOut())
             return;

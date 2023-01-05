@@ -140,9 +140,10 @@ bool File::setAsCurrentWorkingDirectory() const
 
 //==============================================================================
 // The unix siginterrupt function is deprecated - this does the same job.
-int juce_siginterrupt ([[maybe_unused]] int sig, [[maybe_unused]] int flag)
+int juce_siginterrupt (int sig, int flag)
 {
    #if JUCE_WASM
+    ignoreUnused (sig, flag);
     return 0;
    #else
     #if JUCE_ANDROID
@@ -692,7 +693,8 @@ int File::getVolumeSerialNumber() const
 void juce_runSystemCommand (const String&);
 void juce_runSystemCommand (const String& command)
 {
-    [[maybe_unused]] int result = system (command.toUTF8());
+    int result = system (command.toUTF8());
+    ignoreUnused (result);
 }
 
 String juce_getOutputFromCommand (const String&);
@@ -1013,7 +1015,7 @@ void JUCE_CALLTYPE Thread::yield()
  #define SUPPORT_AFFINITIES 1
 #endif
 
-void JUCE_CALLTYPE Thread::setCurrentThreadAffinityMask ([[maybe_unused]] uint32 affinityMask)
+void JUCE_CALLTYPE Thread::setCurrentThreadAffinityMask (uint32 affinityMask)
 {
    #if SUPPORT_AFFINITIES
     cpu_set_t affinity;
@@ -1040,6 +1042,7 @@ void JUCE_CALLTYPE Thread::setCurrentThreadAffinityMask ([[maybe_unused]] uint32
     // affinities aren't supported because either the appropriate header files weren't found,
     // or the SUPPORT_AFFINITIES macro was turned off
     jassertfalse;
+    ignoreUnused (affinityMask);
    #endif
 }
 

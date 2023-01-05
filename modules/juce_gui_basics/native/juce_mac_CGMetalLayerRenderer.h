@@ -35,11 +35,12 @@ class CoreGraphicsMetalLayerRenderer
 {
 public:
     //==============================================================================
-    static auto create (ViewType* view, bool isOpaque)
+    CoreGraphicsMetalLayerRenderer (ViewType* view, bool isOpaque)
     {
-        ObjCObjectHandle<id<MTLDevice>> device { MTLCreateSystemDefaultDevice() };
-        return rawToUniquePtr (device != nullptr ? new CoreGraphicsMetalLayerRenderer (device, view, isOpaque)
-                                                 : nullptr);
+        device.reset (MTLCreateSystemDefaultDevice());
+        commandQueue.reset ([device.get() newCommandQueue]);
+
+        attach (view, isOpaque);
     }
 
     ~CoreGraphicsMetalLayerRenderer()
@@ -222,16 +223,6 @@ public:
     }
 
 private:
-    //==============================================================================
-    CoreGraphicsMetalLayerRenderer (ObjCObjectHandle<id<MTLDevice>> mtlDevice,
-                                    ViewType* view,
-                                    bool isOpaque)
-        : device (mtlDevice),
-          commandQueue ([device.get() newCommandQueue])
-    {
-        attach (view, isOpaque);
-    }
-
     //==============================================================================
     static auto alignTo (size_t n, size_t alignment)
     {

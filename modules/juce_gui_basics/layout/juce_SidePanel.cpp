@@ -159,8 +159,7 @@ void SidePanel::paint (Graphics& g)
                                                                                 : shadowArea.getTopLeft()).toFloat(), false));
     g.fillRect (shadowArea);
 
-    g.reduceClipRegion (getLocalBounds().withTrimmedRight (shadowArea.getWidth())
-                                        .withX (isOnLeft ? 0 : shadowArea.getWidth()));
+    g.excludeClipRegion (shadowArea);
     g.fillAll (bgColour);
 }
 
@@ -243,8 +242,10 @@ void SidePanel::lookAndFeelChanged()
     titleLabel.setJustificationType (lf.getSidePanelTitleJustification (*this));
 }
 
-void SidePanel::componentMovedOrResized (Component& component, [[maybe_unused]] bool wasMoved, bool wasResized)
+void SidePanel::componentMovedOrResized (Component& component, bool wasMoved, bool wasResized)
 {
+    ignoreUnused (wasMoved);
+
     if (wasResized && (&component == parent))
         setBounds (calculateBoundsInParent (component));
 }

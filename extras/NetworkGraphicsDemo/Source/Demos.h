@@ -490,7 +490,7 @@ struct MultiLogo  : public BackgroundLogo
 };
 
 //==============================================================================
-inline void createAllDemos (OwnedArray<AnimatedContent>& demos)
+void createAllDemos (OwnedArray<AnimatedContent>& demos)
 {
     demos.add (new FlockDemo());
     demos.add (new FlockWithText());

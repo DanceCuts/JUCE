@@ -176,11 +176,11 @@ int64 MemoryOutputStream::writeFromInputStream (InputStream& source, int64 maxNu
 
     if (availableData > 0)
     {
-        if (maxNumBytesToWrite < 0 || availableData < maxNumBytesToWrite)
+        if (maxNumBytesToWrite > availableData || maxNumBytesToWrite < 0)
             maxNumBytesToWrite = availableData;
 
         if (blockToUse != nullptr)
-            preallocate (position + (size_t) maxNumBytesToWrite);
+            preallocate (position + (size_t) availableData);
     }
 
     return OutputStream::writeFromInputStream (source, maxNumBytesToWrite);

@@ -457,7 +457,8 @@ public:
        #endif
 
        #if JUCE_WIN32_TIMER_PERIOD > 0
-        [[maybe_unused]] auto res = timeBeginPeriod (JUCE_WIN32_TIMER_PERIOD);
+        auto res = timeBeginPeriod (JUCE_WIN32_TIMER_PERIOD);
+        ignoreUnused (res);
         jassert (res == TIMERR_NOERROR);
        #endif
 

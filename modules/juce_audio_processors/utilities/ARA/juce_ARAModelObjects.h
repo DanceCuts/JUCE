@@ -181,49 +181,76 @@ public:
     /** Destructor */
     virtual ~ARADocumentListener() = default;
 
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_BEGIN
+
     /** Called before the document enters an editing state.
         @param document The document about to enter an editing state.
     */
-    virtual void willBeginEditing (ARADocument* document);
+    virtual void willBeginEditing (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
 
     /** Called after the document exits an editing state.
         @param document The document about exit an editing state.
     */
-    virtual void didEndEditing (ARADocument* document);
+    virtual void didEndEditing (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
 
     /** Called before sending model updates do the host.
         @param document The document whose model updates are about to be sent.
     */
-    virtual void willNotifyModelUpdates (ARADocument* document);
+    virtual void willNotifyModelUpdates (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
 
     /** Called after sending model updates do the host.
         @param document The document whose model updates have just been sent.
     */
-    virtual void didNotifyModelUpdates (ARADocument* document);
+    virtual void didNotifyModelUpdates (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
 
     /** Called before the document's properties are updated.
         @param document The document whose properties will be updated.
         @param newProperties The document properties that will be assigned to \p document.
     */
     virtual void willUpdateDocumentProperties (ARADocument* document,
-                                               ARA::PlugIn::PropertiesPtr<ARA::ARADocumentProperties> newProperties);
+                                               ARA::PlugIn::PropertiesPtr<ARA::ARADocumentProperties> newProperties)
+    {
+        ignoreUnused (document, newProperties);
+    }
 
     /** Called after the document's properties are updated.
         @param document The document whose properties were updated.
     */
-    virtual void didUpdateDocumentProperties (ARADocument* document);
+    virtual void didUpdateDocumentProperties (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
 
     /** Called after a musical context is added to the document.
         @param document The document that \p musicalContext was added to.
         @param musicalContext The musical context that was added to \p document.
     */
-    virtual void didAddMusicalContextToDocument (ARADocument* document, ARAMusicalContext* musicalContext);
+    virtual void didAddMusicalContextToDocument (ARADocument* document, ARAMusicalContext* musicalContext)
+    {
+        ignoreUnused (document, musicalContext);
+    }
 
     /** Called before a musical context is removed from the document.
         @param document The document that \p musicalContext will be removed from.
         @param musicalContext The musical context that will be removed from \p document.
     */
-    virtual void willRemoveMusicalContextFromDocument (ARADocument* document, ARAMusicalContext* musicalContext);
+    virtual void willRemoveMusicalContextFromDocument (ARADocument* document,
+                                                       ARAMusicalContext* musicalContext)
+    {
+        ignoreUnused (document, musicalContext);
+    }
 
     /** Called after the musical contexts are reordered in an ARA document
 
@@ -232,19 +259,29 @@ public:
 
         @param document The document with reordered musical contexts.
     */
-    virtual void didReorderMusicalContextsInDocument (ARADocument* document);
+    virtual void didReorderMusicalContextsInDocument (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
 
     /** Called after a region sequence is added to the document.
         @param document The document that \p regionSequence was added to.
         @param regionSequence The region sequence that was added to \p document.
     */
-    virtual void didAddRegionSequenceToDocument (ARADocument* document, ARARegionSequence* regionSequence);
+    virtual void didAddRegionSequenceToDocument (ARADocument* document, ARARegionSequence* regionSequence)
+    {
+        ignoreUnused (document, regionSequence);
+    }
 
     /** Called before a region sequence is removed from the document.
         @param document The document that \p regionSequence will be removed from.
         @param regionSequence The region sequence that will be removed from \p document.
     */
-    virtual void willRemoveRegionSequenceFromDocument (ARADocument* document, ARARegionSequence* regionSequence);
+    virtual void willRemoveRegionSequenceFromDocument (ARADocument* document,
+                                                       ARARegionSequence* regionSequence)
+    {
+        ignoreUnused (document, regionSequence);
+    }
 
     /** Called after the region sequences are reordered in an ARA document
 
@@ -253,24 +290,38 @@ public:
 
         @param document The document with reordered region sequences.
     */
-    virtual void didReorderRegionSequencesInDocument (ARADocument* document);
+    virtual void didReorderRegionSequencesInDocument (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
 
     /** Called after an audio source is added to the document.
         @param document The document that \p audioSource was added to.
         @param audioSource The audio source that was added to \p document.
     */
-    virtual void didAddAudioSourceToDocument (ARADocument* document, ARAAudioSource* audioSource);
+    virtual void didAddAudioSourceToDocument (ARADocument* document, ARAAudioSource* audioSource)
+    {
+        ignoreUnused (document, audioSource);
+    }
 
     /** Called before an audio source is removed from the document.
         @param document The document that \p audioSource will be removed from .
         @param audioSource The audio source that will be removed from \p document.
     */
-    virtual void willRemoveAudioSourceFromDocument (ARADocument* document, ARAAudioSource* audioSource);
+    virtual void willRemoveAudioSourceFromDocument (ARADocument* document, ARAAudioSource* audioSource)
+    {
+        ignoreUnused (document, audioSource);
+    }
 
     /** Called before the document is destroyed by the ARA host.
         @param document The document that will be destroyed.
     */
-    virtual void willDestroyDocument (ARADocument* document);
+    virtual void willDestroyDocument (ARADocument* document)
+    {
+        ignoreUnused (document);
+    }
+
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_END
 };
 
 //==============================================================================
@@ -344,36 +395,55 @@ class JUCE_API  ARAMusicalContextListener
 public:
     virtual ~ARAMusicalContextListener() = default;
 
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_BEGIN
+
     /** Called before the musical context's properties are updated.
         @param musicalContext The musical context whose properties will be updated.
         @param newProperties The musical context properties that will be assigned to \p musicalContext.
     */
     virtual void willUpdateMusicalContextProperties (ARAMusicalContext* musicalContext,
-                                                     ARA::PlugIn::PropertiesPtr<ARA::ARAMusicalContextProperties> newProperties);
+                                                     ARA::PlugIn::PropertiesPtr<ARA::ARAMusicalContextProperties> newProperties)
+    {
+        ignoreUnused (musicalContext, newProperties);
+    }
 
     /** Called after the musical context's properties are updated by the host.
         @param musicalContext The musical context whose properties were updated.
     */
-    virtual void didUpdateMusicalContextProperties (ARAMusicalContext* musicalContext);
+    virtual void didUpdateMusicalContextProperties (ARAMusicalContext* musicalContext)
+    {
+        ignoreUnused (musicalContext);
+    }
 
     /** Called when the musical context's content (i.e tempo entries or chords) changes.
         @param musicalContext The musical context with updated content.
         @param scopeFlags The scope of the content update indicating what has changed.
     */
-    virtual void doUpdateMusicalContextContent (ARAMusicalContext* musicalContext, ARAContentUpdateScopes scopeFlags);
+    virtual void doUpdateMusicalContextContent (ARAMusicalContext* musicalContext,
+                                                ARAContentUpdateScopes scopeFlags)
+    {
+        ignoreUnused (musicalContext, scopeFlags);
+    }
 
     /** Called after a region sequence is added to the musical context.
         @param musicalContext The musical context that \p regionSequence was added to.
         @param regionSequence The region sequence that was added to \p musicalContext.
     */
-    virtual void didAddRegionSequenceToMusicalContext (ARAMusicalContext* musicalContext, ARARegionSequence* regionSequence);
+    virtual void didAddRegionSequenceToMusicalContext (ARAMusicalContext* musicalContext,
+                                                       ARARegionSequence* regionSequence)
+    {
+        ignoreUnused (musicalContext, regionSequence);
+    }
 
     /** Called before a region sequence is removed from the musical context.
         @param musicalContext The musical context that \p regionSequence will be removed from.
         @param regionSequence The region sequence that will be removed from \p musicalContext.
     */
     virtual void willRemoveRegionSequenceFromMusicalContext (ARAMusicalContext* musicalContext,
-                                                             ARARegionSequence* regionSequence);
+                                                             ARARegionSequence* regionSequence)
+    {
+        ignoreUnused (musicalContext, regionSequence);
+    }
 
     /** Called after the region sequences are reordered in an ARA MusicalContext
 
@@ -382,12 +452,20 @@ public:
 
         @param musicalContext The musical context with reordered region sequences.
     */
-    virtual void didReorderRegionSequencesInMusicalContext (ARAMusicalContext* musicalContext);
+    virtual void didReorderRegionSequencesInMusicalContext (ARAMusicalContext* musicalContext)
+    {
+        ignoreUnused (musicalContext);
+    }
 
     /** Called before the musical context is destroyed.
         @param musicalContext The musical context that will be destroyed.
     */
-    virtual void willDestroyMusicalContext (ARAMusicalContext* musicalContext);
+    virtual void willDestroyMusicalContext (ARAMusicalContext* musicalContext)
+    {
+        ignoreUnused (musicalContext);
+    }
+
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_END
 };
 
 //==============================================================================
@@ -450,29 +528,45 @@ public:
     /** Destructor. */
     virtual ~ARAPlaybackRegionListener() = default;
 
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_BEGIN
+
     /** Called before the playback region's properties are updated.
         @param playbackRegion The playback region whose properties will be updated.
         @param newProperties The playback region properties that will be assigned to \p playbackRegion.
     */
     virtual void willUpdatePlaybackRegionProperties (ARAPlaybackRegion* playbackRegion,
-                                                     ARA::PlugIn::PropertiesPtr<ARA::ARAPlaybackRegionProperties> newProperties);
+                                                     ARA::PlugIn::PropertiesPtr<ARA::ARAPlaybackRegionProperties> newProperties)
+    {
+        ignoreUnused (playbackRegion, newProperties);
+    }
 
     /** Called after the playback region's properties are updated.
         @param playbackRegion The playback region whose properties were updated.
     */
-    virtual void didUpdatePlaybackRegionProperties (ARAPlaybackRegion* playbackRegion);
+    virtual void didUpdatePlaybackRegionProperties (ARAPlaybackRegion* playbackRegion)
+    {
+        ignoreUnused (playbackRegion);
+    }
 
     /** Called when the playback region's content (i.e. samples or notes) changes.
         @param playbackRegion The playback region with updated content.
         @param scopeFlags The scope of the content update.
     */
     virtual void didUpdatePlaybackRegionContent (ARAPlaybackRegion* playbackRegion,
-                                                 ARAContentUpdateScopes scopeFlags);
+                                                 ARAContentUpdateScopes scopeFlags)
+    {
+        ignoreUnused (playbackRegion, scopeFlags);
+    }
 
     /** Called before the playback region is destroyed.
         @param playbackRegion The playback region that will be destroyed.
     */
-    virtual void willDestroyPlaybackRegion (ARAPlaybackRegion* playbackRegion);
+    virtual void willDestroyPlaybackRegion (ARAPlaybackRegion* playbackRegion)
+    {
+        ignoreUnused (playbackRegion);
+    }
+
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_END
 };
 
 //==============================================================================
@@ -571,36 +665,55 @@ public:
     /** Destructor. */
     virtual ~ARARegionSequenceListener() = default;
 
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_BEGIN
+
     /** Called before the region sequence's properties are updated.
         @param regionSequence The region sequence whose properties will be updated.
         @param newProperties The region sequence properties that will be assigned to \p regionSequence.
     */
     virtual void willUpdateRegionSequenceProperties (ARARegionSequence* regionSequence,
-                                                     ARA::PlugIn::PropertiesPtr<ARA::ARARegionSequenceProperties> newProperties);
+                                                     ARA::PlugIn::PropertiesPtr<ARA::ARARegionSequenceProperties> newProperties)
+    {
+        ignoreUnused (regionSequence, newProperties);
+    }
 
     /** Called after the region sequence's properties are updated.
         @param regionSequence The region sequence whose properties were updated.
     */
-    virtual void didUpdateRegionSequenceProperties (ARARegionSequence* regionSequence);
+    virtual void didUpdateRegionSequenceProperties (ARARegionSequence* regionSequence)
+    {
+        ignoreUnused (regionSequence);
+    }
 
     /** Called before a playback region is removed from the region sequence.
         @param regionSequence The region sequence that \p playbackRegion will be removed from.
         @param playbackRegion The playback region that will be removed from \p regionSequence.
     */
     virtual void willRemovePlaybackRegionFromRegionSequence (ARARegionSequence* regionSequence,
-                                                             ARAPlaybackRegion* playbackRegion);
+                                                             ARAPlaybackRegion* playbackRegion)
+    {
+        ignoreUnused (regionSequence, playbackRegion);
+    }
 
     /** Called after a playback region is added to the region sequence.
         @param regionSequence The region sequence that \p playbackRegion was added to.
         @param playbackRegion The playback region that was added to \p regionSequence.
     */
     virtual void didAddPlaybackRegionToRegionSequence (ARARegionSequence* regionSequence,
-                                                       ARAPlaybackRegion* playbackRegion);
+                                                       ARAPlaybackRegion* playbackRegion)
+    {
+        ignoreUnused (regionSequence, playbackRegion);
+    }
 
     /** Called before the region sequence is destroyed.
         @param regionSequence The region sequence that will be destroyed.
     */
-    virtual void willDestroyRegionSequence (ARARegionSequence* regionSequence);
+    virtual void willDestroyRegionSequence (ARARegionSequence* regionSequence)
+    {
+        ignoreUnused (regionSequence);
+    }
+
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_END
 };
 
 //==============================================================================
@@ -687,23 +800,34 @@ public:
     /** Destructor. */
     virtual ~ARAAudioSourceListener() = default;
 
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_BEGIN
+
     /** Called before the audio source's properties are updated.
         @param audioSource The audio source whose properties will be updated.
         @param newProperties The audio source properties that will be assigned to \p audioSource.
     */
     virtual void willUpdateAudioSourceProperties (ARAAudioSource* audioSource,
-                                                  ARA::PlugIn::PropertiesPtr<ARA::ARAAudioSourceProperties> newProperties);
+                                                  ARA::PlugIn::PropertiesPtr<ARA::ARAAudioSourceProperties> newProperties)
+    {
+        ignoreUnused (audioSource, newProperties);
+    }
 
     /** Called after the audio source's properties are updated.
         @param audioSource The audio source whose properties were updated.
     */
-    virtual void didUpdateAudioSourceProperties (ARAAudioSource* audioSource);
+    virtual void didUpdateAudioSourceProperties (ARAAudioSource* audioSource)
+    {
+        ignoreUnused (audioSource);
+    }
 
     /** Called when the audio source's content (i.e. samples or notes) changes.
         @param audioSource The audio source with updated content.
         @param scopeFlags The scope of the content update.
     */
-    virtual void doUpdateAudioSourceContent (ARAAudioSource* audioSource, ARAContentUpdateScopes scopeFlags);
+    virtual void doUpdateAudioSourceContent (ARAAudioSource* audioSource, ARAContentUpdateScopes scopeFlags)
+    {
+        ignoreUnused (audioSource, scopeFlags);
+    }
 
     /** Called to notify progress when an audio source is being analyzed.
         @param audioSource The audio source being analyzed.
@@ -712,54 +836,76 @@ public:
     */
     virtual void didUpdateAudioSourceAnalysisProgress (ARAAudioSource* audioSource,
                                                        ARA::ARAAnalysisProgressState state,
-                                                       float progress);
+                                                       float progress)
+    {
+        ignoreUnused (audioSource, state, progress);
+    }
 
     /** Called before access to an audio source's samples is enabled or disabled.
         @param audioSource The audio source whose sample access state will be changed.
         @param enable A bool indicating whether or not sample access will be enabled or disabled.
     */
-    virtual void willEnableAudioSourceSamplesAccess (ARAAudioSource* audioSource,
-                                                     bool enable);
+    virtual void willEnableAudioSourceSamplesAccess (ARAAudioSource* audioSource, bool enable)
+    {
+        ignoreUnused (audioSource, enable);
+    }
 
     /** Called after access to an audio source's samples is enabled or disabled.
         @param audioSource The audio source whose sample access state was changed.
         @param enable A bool indicating whether or not sample access was enabled or disabled.
     */
-    virtual void didEnableAudioSourceSamplesAccess (ARAAudioSource* audioSource,
-                                                    bool enable);
+    virtual void didEnableAudioSourceSamplesAccess (ARAAudioSource* audioSource, bool enable)
+    {
+        ignoreUnused (audioSource, enable);
+    }
 
     /** Called before an audio source is activated or deactivated when being removed / added from the host's undo history.
         @param audioSource The audio source that will be activated or deactivated
         @param deactivate A bool indicating whether \p audioSource was deactivated or activated.
     */
-    virtual void willDeactivateAudioSourceForUndoHistory (ARAAudioSource* audioSource,
-                                                          bool deactivate);
+    virtual void willDeactivateAudioSourceForUndoHistory (ARAAudioSource* audioSource, bool deactivate)
+    {
+        ignoreUnused (audioSource, deactivate);
+    }
 
     /** Called after an audio source is activated or deactivated when being removed / added from the host's undo history.
         @param audioSource The audio source that was activated or deactivated
         @param deactivate A bool indicating whether \p audioSource was deactivated or activated.
     */
-    virtual void didDeactivateAudioSourceForUndoHistory (ARAAudioSource* audioSource,
-                                                         bool deactivate);
+    virtual void didDeactivateAudioSourceForUndoHistory (ARAAudioSource* audioSource, bool deactivate)
+    {
+        ignoreUnused (audioSource, deactivate);
+    }
 
     /** Called after an audio modification is added to the audio source.
         @param audioSource The region sequence that \p audioModification was added to.
         @param audioModification The playback region that was added to \p audioSource.
     */
     virtual void didAddAudioModificationToAudioSource (ARAAudioSource* audioSource,
-                                                       ARAAudioModification* audioModification);
+                                                       ARAAudioModification* audioModification)
+    {
+        ignoreUnused (audioSource, audioModification);
+    }
 
     /** Called before an audio modification is removed from the audio source.
         @param audioSource The audio source that \p audioModification will be removed from.
         @param audioModification The audio modification that will be removed from \p audioSource.
     */
     virtual void willRemoveAudioModificationFromAudioSource (ARAAudioSource* audioSource,
-                                                             ARAAudioModification* audioModification);
+                                                             ARAAudioModification* audioModification)
+    {
+        ignoreUnused (audioSource, audioModification);
+    }
 
     /** Called before the audio source is destroyed.
         @param audioSource The audio source that will be destroyed.
     */
-    virtual void willDestroyAudioSource (ARAAudioSource* audioSource);
+    virtual void willDestroyAudioSource (ARAAudioSource* audioSource)
+    {
+        ignoreUnused (audioSource);
+    }
+
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_END
 };
 
 //==============================================================================
@@ -858,57 +1004,82 @@ public:
     /** Destructor. */
     virtual ~ARAAudioModificationListener() = default;
 
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_BEGIN
+
     /** Called before the audio modification's properties are updated.
         @param audioModification The audio modification whose properties will be updated.
         @param newProperties The audio modification properties that will be assigned to \p audioModification.
     */
     virtual void willUpdateAudioModificationProperties (ARAAudioModification* audioModification,
-                                                        ARA::PlugIn::PropertiesPtr<ARA::ARAAudioModificationProperties> newProperties);
+                                                        ARA::PlugIn::PropertiesPtr<ARA::ARAAudioModificationProperties> newProperties)
+    {
+        ignoreUnused (audioModification, newProperties);
+    }
 
     /** Called after the audio modification's properties are updated.
         @param audioModification The audio modification whose properties were updated.
     */
-    virtual void didUpdateAudioModificationProperties (ARAAudioModification* audioModification);
+    virtual void didUpdateAudioModificationProperties (ARAAudioModification* audioModification)
+    {
+        ignoreUnused (audioModification);
+    }
 
     /** Called when the audio modification's content (i.e. samples or notes) changes.
         @param audioModification The audio modification with updated content.
         @param scopeFlags The scope of the content update.
     */
-    virtual void didUpdateAudioModificationContent (ARAAudioModification* audioModification,
-                                                    ARAContentUpdateScopes scopeFlags);
+    virtual void didUpdateAudioModificationContent (ARAAudioModification* audioModification, ARAContentUpdateScopes scopeFlags)
+    {
+        ignoreUnused (audioModification, scopeFlags);
+    }
 
     /** Called before an audio modification is activated or deactivated when being removed / added from the host's undo history.
         @param audioModification The audio modification that was activated or deactivated
         @param deactivate A bool indicating whether \p audioModification was deactivated or activated.
     */
-    virtual void willDeactivateAudioModificationForUndoHistory (ARAAudioModification* audioModification,
-                                                                bool deactivate);
+    virtual void willDeactivateAudioModificationForUndoHistory (ARAAudioModification* audioModification, bool deactivate)
+    {
+        ignoreUnused (audioModification, deactivate);
+    }
 
     /** Called after an audio modification is activated or deactivated when being removed / added from the host's undo history.
         @param audioModification The audio modification that was activated or deactivated
         @param deactivate A bool indicating whether \p audioModification was deactivated or activated.
     */
-    virtual void didDeactivateAudioModificationForUndoHistory (ARAAudioModification* audioModification,
-                                                               bool deactivate);
+    virtual void didDeactivateAudioModificationForUndoHistory (ARAAudioModification* audioModification, bool deactivate)
+    {
+        ignoreUnused (audioModification, deactivate);
+    }
 
     /** Called after a playback region is added to the audio modification.
         @param audioModification The audio modification that \p playbackRegion was added to.
         @param playbackRegion The playback region that was added to \p audioModification.
     */
     virtual void didAddPlaybackRegionToAudioModification (ARAAudioModification* audioModification,
-                                                          ARAPlaybackRegion* playbackRegion);
+                                                          ARAPlaybackRegion* playbackRegion)
+    {
+        ignoreUnused (audioModification, playbackRegion);
+    }
 
     /** Called before a playback region is removed from the audio modification.
         @param audioModification The audio modification that \p playbackRegion will be removed from.
         @param playbackRegion The playback region that will be removed from \p audioModification.
     */
     virtual void willRemovePlaybackRegionFromAudioModification (ARAAudioModification* audioModification,
-                                                                ARAPlaybackRegion* playbackRegion);
+                                                                ARAPlaybackRegion* playbackRegion)
+    {
+        ignoreUnused (audioModification, playbackRegion);
+    }
 
     /** Called before the audio modification is destroyed.
         @param audioModification The audio modification that will be destroyed.
     */
-    virtual void willDestroyAudioModification (ARAAudioModification* audioModification);
+    virtual void willDestroyAudioModification (ARAAudioModification* audioModification)
+    {
+        ignoreUnused (audioModification);
+    }
+
+   ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_END
 };
 
 //==============================================================================

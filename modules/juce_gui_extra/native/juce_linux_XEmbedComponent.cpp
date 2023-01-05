@@ -73,13 +73,11 @@ public:
     {
         SharedKeyWindow (ComponentPeer* peerToUse)
             : keyPeer (peerToUse),
-              keyProxy (juce_createKeyProxyWindow (keyPeer)),
-              association (peerToUse, keyProxy)
+              keyProxy (juce_createKeyProxyWindow (keyPeer))
         {}
 
         ~SharedKeyWindow()
         {
-            association = {};
             juce_deleteKeyProxyWindow (keyProxy);
 
             auto& keyWindows = getKeyWindows();
@@ -122,7 +120,6 @@ public:
         //==============================================================================
         ComponentPeer* keyPeer;
         Window keyProxy;
-        ScopedWindowAssociation association;
 
         static HashMap<ComponentPeer*, SharedKeyWindow*>& getKeyWindows()
         {

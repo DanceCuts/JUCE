@@ -179,15 +179,14 @@ namespace AudioUnitFormatHelpers
         return false;
     }
 
-    static bool getComponentDescFromFile ([[maybe_unused]] const String& fileOrIdentifier,
-                                          [[maybe_unused]] AudioComponentDescription& desc,
-                                          [[maybe_unused]] String& name,
-                                          [[maybe_unused]] String& version,
-                                          [[maybe_unused]] String& manufacturer)
+    static bool getComponentDescFromFile (const String& fileOrIdentifier, AudioComponentDescription& desc,
+                                          String& name, String& version, String& manufacturer)
     {
         zerostruct (desc);
 
        #if JUCE_IOS
+        ignoreUnused (fileOrIdentifier, name, version, manufacturer);
+
         return false;
        #else
         const File file (fileOrIdentifier);
@@ -435,7 +434,7 @@ namespace AudioUnitFormatHelpers
     }
 }
 
-static bool hasARAExtension ([[maybe_unused]] AudioUnit audioUnit)
+static bool hasARAExtension (AudioUnit audioUnit)
 {
    #if JUCE_PLUGINHOST_ARA
     UInt32 propertySize = sizeof (ARA::ARAAudioUnitFactory);
@@ -450,6 +449,8 @@ static bool hasARAExtension ([[maybe_unused]] AudioUnit audioUnit)
 
     if ((status == noErr) && (propertySize == sizeof (ARA::ARAAudioUnitFactory)) && ! isWriteable)
         return true;
+   #else
+    ignoreUnused (audioUnit);
    #endif
 
     return false;
@@ -464,7 +465,7 @@ using AudioUnitUniquePtr = std::unique_ptr<std::remove_pointer_t<AudioUnit>, Aud
 using AudioUnitSharedPtr = std::shared_ptr<std::remove_pointer_t<AudioUnit>>;
 using AudioUnitWeakPtr = std::weak_ptr<std::remove_pointer_t<AudioUnit>>;
 
-static std::shared_ptr<const ARA::ARAFactory> getARAFactory ([[maybe_unused]] AudioUnitSharedPtr audioUnit)
+static std::shared_ptr<const ARA::ARAFactory> getARAFactory (AudioUnitSharedPtr audioUnit)
 {
    #if JUCE_PLUGINHOST_ARA
     jassert (audioUnit != nullptr);
@@ -490,6 +491,8 @@ static std::shared_ptr<const ARA::ARAFactory> getARAFactory ([[maybe_unused]] Au
                                           [owningAuPtr = std::move (audioUnit)]() {});
         }
     }
+   #else
+    ignoreUnused (audioUnit);
    #endif
 
     return {};
@@ -2637,12 +2640,13 @@ public:
         }
     }
 
-    void embedViewController (JUCE_IOS_MAC_VIEW* pluginView, [[maybe_unused]] const CGSize& size)
+    void embedViewController (JUCE_IOS_MAC_VIEW* pluginView, const CGSize& size)
     {
         wrapper.setView (pluginView);
         waitingForViewCallback = false;
 
       #if JUCE_MAC
+        ignoreUnused (size);
         if (pluginView != nil)
             wrapper.resizeToFitView();
       #else
@@ -2678,7 +2682,7 @@ private:
 
     bool waitingForViewCallback = false;
 
-    bool createView ([[maybe_unused]] bool createGenericViewIfNeeded)
+    bool createView (bool createGenericViewIfNeeded)
     {
         JUCE_IOS_MAC_VIEW* pluginView = nil;
         UInt32 dataSize = 0;
@@ -2752,6 +2756,8 @@ private:
 
             pluginView = [[AUGenericView alloc] initWithAudioUnit: plugin.audioUnit];
         }
+       #else
+        ignoreUnused (createGenericViewIfNeeded);
        #endif
 
         wrapper.setView (pluginView);

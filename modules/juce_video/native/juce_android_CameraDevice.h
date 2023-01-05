@@ -400,7 +400,7 @@ class MediaRecorderOnInfoListener     : public AndroidInterfaceImplementer
 public:
     struct Owner
     {
-        virtual ~Owner() = default;
+        virtual ~Owner() {}
 
         virtual void onInfo (LocalRef<jobject>& mediaRecorder, int what, int extra) = 0;
     };
@@ -715,7 +715,7 @@ private:
         {
             auto key = LocalRef<jobject> (env->CallObjectMethod (keysList, JavaList.get, i));
             auto jKeyName = LocalRef<jstring> ((jstring) env->CallObjectMethod (key, CameraCharacteristicsKey.getName));
-            [[maybe_unused]] auto keyName = juceString (jKeyName);
+            auto keyName = juceString (jKeyName);
 
             auto keyValue = LocalRef<jobject> (env->CallObjectMethod (characteristics, CameraCharacteristics.get, key.get()));
             auto jKeyValueString = LocalRef<jstring> ((jstring) env->CallObjectMethod (keyValue, JavaObject.toString));
@@ -747,12 +747,16 @@ private:
                     JUCE_CAMERA_LOG ("Key: " + keyName + ", value: " + keyValueString);
                 }
             }
+
+            ignoreUnused (keyName);
         }
     }
 
-    static void printPrimitiveArrayElements (const LocalRef<jobject>& keyValue, [[maybe_unused]] const String& keyName,
+    static void printPrimitiveArrayElements (const LocalRef<jobject>& keyValue, const String& keyName,
                                              const String& keyValueString)
     {
+        ignoreUnused (keyName);
+
         String result = "[";
 
         auto* env = getEnv();
@@ -786,7 +790,7 @@ private:
         JUCE_CAMERA_LOG ("Key: " + keyName + ", value: " + result);
     }
 
-    static void printRangeArrayElements (const LocalRef<jobject>& rangeArray, [[maybe_unused]] const String& keyName)
+    static void printRangeArrayElements (const LocalRef<jobject>& rangeArray, const String& keyName)
     {
         auto* env = getEnv();
 
@@ -805,6 +809,7 @@ private:
             result << juceString (jRangeString) << " ";
         }
 
+        ignoreUnused (keyName);
         JUCE_CAMERA_LOG ("Key: " + keyName + ", value: " + result);
     }
 
@@ -916,8 +921,10 @@ private:
                                                                         javaString (name).get()));
         }
 
-        static void printSizesLog ([[maybe_unused]] const Array<Rectangle<int>>& sizes, [[maybe_unused]] const String& className)
+        static void printSizesLog (const Array<Rectangle<int>>& sizes, const String& className)
         {
+            ignoreUnused (sizes, className);
+
             JUCE_CAMERA_LOG ("Sizes for class " + className);
 
           #if JUCE_CAMERA_LOG_ENABLED
@@ -1482,14 +1489,18 @@ private:
             Desktop::getInstance().setOrientationsEnabled (orientationsEnabled);
         }
 
-        void onInfo ([[maybe_unused]] LocalRef<jobject>& recorder, [[maybe_unused]] int what, [[maybe_unused]] int extra) override
+        void onInfo (LocalRef<jobject>& recorder, int what, int extra) override
         {
+            ignoreUnused (recorder, what, extra);
+
             JUCE_CAMERA_LOG ("MediaRecorder::OnInfo: " + getInfoStringFromCode (what)
                                      + ", extra code = " + String (extra));
         }
 
-        void onError ([[maybe_unused]] LocalRef<jobject>& recorder, [[maybe_unused]] int what, [[maybe_unused]] int extra) override
+        void onError (LocalRef<jobject>& recorder, int what, int extra) override
         {
+            ignoreUnused (recorder, what, extra);
+
             JUCE_CAMERA_LOG ("MediaRecorder::onError: " + getErrorStringFromCode (what)
                                      + ", extra code = " + String (extra));
         }
@@ -1711,25 +1722,26 @@ private:
                 //==============================================================================
                 #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK) \
                    METHOD (constructor, "<init>", "(JZ)V")              \
-                   CALLBACK (generatedCallback<&StillPictureTaker::cameraCaptureSessionCaptureCompletedCallback>,         "cameraCaptureSessionCaptureCompleted",         "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;Landroid/hardware/camera2/TotalCaptureResult;)V") \
-                   CALLBACK (generatedCallback<&StillPictureTaker::cameraCaptureSessionCaptureFailedCallback>,            "cameraCaptureSessionCaptureFailed",            "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;Landroid/hardware/camera2/CaptureFailure;)V") \
-                   CALLBACK (generatedCallback<&StillPictureTaker::cameraCaptureSessionCaptureProgressedCallback>,        "cameraCaptureSessionCaptureProgressed",        "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;Landroid/hardware/camera2/CaptureResult;)V") \
-                   CALLBACK (generatedCallback<&StillPictureTaker::cameraCaptureSessionCaptureStartedCallback>,           "cameraCaptureSessionCaptureStarted",           "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;JJ)V") \
-                   CALLBACK (generatedCallback<&StillPictureTaker::cameraCaptureSessionCaptureSequenceAbortedCallback>,   "cameraCaptureSessionCaptureSequenceAborted",   "(JZLandroid/hardware/camera2/CameraCaptureSession;I)V") \
-                   CALLBACK (generatedCallback<&StillPictureTaker::cameraCaptureSessionCaptureSequenceCompletedCallback>, "cameraCaptureSessionCaptureSequenceCompleted", "(JZLandroid/hardware/camera2/CameraCaptureSession;IJ)V")
+                   CALLBACK (cameraCaptureSessionCaptureCompletedCallback,         "cameraCaptureSessionCaptureCompleted",         "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;Landroid/hardware/camera2/TotalCaptureResult;)V") \
+                   CALLBACK (cameraCaptureSessionCaptureFailedCallback,            "cameraCaptureSessionCaptureFailed",            "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;Landroid/hardware/camera2/CaptureFailure;)V") \
+                   CALLBACK (cameraCaptureSessionCaptureProgressedCallback,        "cameraCaptureSessionCaptureProgressed",        "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;Landroid/hardware/camera2/CaptureResult;)V") \
+                   CALLBACK (cameraCaptureSessionCaptureStartedCallback,           "cameraCaptureSessionCaptureStarted",           "(JZLandroid/hardware/camera2/CameraCaptureSession;Landroid/hardware/camera2/CaptureRequest;JJ)V") \
+                   CALLBACK (cameraCaptureSessionCaptureSequenceAbortedCallback,   "cameraCaptureSessionCaptureSequenceAborted",   "(JZLandroid/hardware/camera2/CameraCaptureSession;I)V") \
+                   CALLBACK (cameraCaptureSessionCaptureSequenceCompletedCallback, "cameraCaptureSessionCaptureSequenceCompleted", "(JZLandroid/hardware/camera2/CameraCaptureSession;IJ)V")
 
-                DECLARE_JNI_CLASS_WITH_BYTECODE (CameraCaptureSessionCaptureCallback, "com/rmsl/juce/CameraCaptureSessionCaptureCallback", 21, CameraSupportByteCode)
+                DECLARE_JNI_CLASS_WITH_BYTECODE (CameraCaptureSessionCaptureCallback, "com/rmsl/juce/CameraCaptureSessionCaptureCallback", 21, CameraSupportByteCode, sizeof(CameraSupportByteCode))
                 #undef JNI_CLASS_MEMBERS
 
                 LocalRef<jobject> createCaptureSessionCallback (bool createPreviewSession)
                 {
-                    return LocalRef<jobject> (getEnv()->NewObject (CameraCaptureSessionCaptureCallback,
-                                                                   CameraCaptureSessionCaptureCallback.constructor,
-                                                                   reinterpret_cast<jlong> (this),
-                                                                   createPreviewSession ? 1 : 0));
+                    return LocalRef<jobject>(getEnv()->NewObject (CameraCaptureSessionCaptureCallback,
+                                                                  CameraCaptureSessionCaptureCallback.constructor,
+                                                                  reinterpret_cast<jlong> (this),
+                                                                  createPreviewSession ? 1 : 0));
                 }
 
                 //==============================================================================
+
                 enum class State
                 {
                     idle = 0,
@@ -1964,12 +1976,11 @@ private:
                 }
 
                 //==============================================================================
-                void cameraCaptureSessionCaptureCompleted (bool isPreview,
-                                                           [[maybe_unused]] jobject session,
-                                                           [[maybe_unused]] jobject request,
-                                                           jobject result)
+                void cameraCaptureSessionCaptureCompleted (bool isPreview, jobject session, jobject request, jobject result)
                 {
                     JUCE_CAMERA_LOG ("cameraCaptureSessionCaptureCompleted()");
+
+                    ignoreUnused (session, request);
 
                     if (isPreview)
                         updateState (result);
@@ -1977,97 +1988,110 @@ private:
                         unlockFocus();
                 }
 
-                void cameraCaptureSessionCaptureFailed ([[maybe_unused]] bool isPreview,
-                                                        [[maybe_unused]] jobject session,
-                                                        [[maybe_unused]] jobject request,
-                                                        [[maybe_unused]] jobject failure)
+                void cameraCaptureSessionCaptureFailed (bool isPreview, jobject session, jobject request, jobject failure)
                 {
                     JUCE_CAMERA_LOG ("cameraCaptureSessionCaptureFailed()");
+
+                    ignoreUnused (isPreview, session, request, failure);
                 }
 
-                void cameraCaptureSessionCaptureProgressed (bool isPreview,
-                                                            [[maybe_unused]] jobject session,
-                                                            [[maybe_unused]] jobject request,
-                                                            jobject partialResult)
+                void cameraCaptureSessionCaptureProgressed (bool isPreview, jobject session, jobject request, jobject partialResult)
                 {
                     JUCE_CAMERA_LOG ("cameraCaptureSessionCaptureProgressed()");
+
+                    ignoreUnused (session, request);
 
                     if (isPreview)
                         updateState (partialResult);
                 }
 
-                void cameraCaptureSessionCaptureSequenceAborted ([[maybe_unused]] bool isPreview,
-                                                                 [[maybe_unused]] jobject session,
-                                                                 [[maybe_unused]] int sequenceId)
+                void cameraCaptureSessionCaptureSequenceAborted (bool isPreview, jobject session, int sequenceId)
                 {
                     JUCE_CAMERA_LOG ("cameraCaptureSessionCaptureSequenceAborted()");
+
+                    ignoreUnused (isPreview, isPreview, session, sequenceId);
                 }
 
-                void cameraCaptureSessionCaptureSequenceCompleted ([[maybe_unused]] bool isPreview,
-                                                                   [[maybe_unused]] jobject session,
-                                                                   [[maybe_unused]] int sequenceId,
-                                                                   [[maybe_unused]] int64 frameNumber)
+                void cameraCaptureSessionCaptureSequenceCompleted (bool isPreview, jobject session, int sequenceId, int64 frameNumber)
                 {
                     JUCE_CAMERA_LOG ("cameraCaptureSessionCaptureSequenceCompleted()");
+
+                    ignoreUnused (isPreview, session, sequenceId, frameNumber);
                 }
 
-                void cameraCaptureSessionCaptureStarted ([[maybe_unused]] bool isPreview,
-                                                         [[maybe_unused]] jobject session,
-                                                         [[maybe_unused]] jobject request,
-                                                         [[maybe_unused]] int64 timestamp,
-                                                         [[maybe_unused]] int64 frameNumber)
+                void cameraCaptureSessionCaptureStarted (bool isPreview, jobject session, jobject request, int64 timestamp, int64 frameNumber)
                 {
                     JUCE_CAMERA_LOG ("cameraCaptureSessionCaptureStarted()");
+
+                    ignoreUnused (isPreview, session, request, timestamp, frameNumber);
                 }
 
                 //==============================================================================
-                static void cameraCaptureSessionCaptureCompletedCallback (JNIEnv* env, StillPictureTaker& t, jboolean isPreview, jobject rawSession, jobject rawRequest, jobject rawResult)
+                static void cameraCaptureSessionCaptureCompletedCallback (JNIEnv*, jobject /*object*/, jlong host, jboolean isPreview, jobject rawSession, jobject rawRequest, jobject rawResult)
                 {
-                    LocalRef<jobject> session (env->NewLocalRef (rawSession));
-                    LocalRef<jobject> request (env->NewLocalRef (rawRequest));
-                    LocalRef<jobject> result (env->NewLocalRef (rawResult));
+                    if (auto* myself = reinterpret_cast<StillPictureTaker*> (host))
+                    {
+                        LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+                        LocalRef<jobject> request (getEnv()->NewLocalRef(rawRequest));
+                        LocalRef<jobject> result (getEnv()->NewLocalRef(rawResult));
 
-                    t.cameraCaptureSessionCaptureCompleted (isPreview != 0, session, request, result);
+                        myself->cameraCaptureSessionCaptureCompleted (isPreview != 0, session, request, result);
+                    }
                 }
 
-                static void cameraCaptureSessionCaptureFailedCallback (JNIEnv* env, StillPictureTaker& t, jboolean isPreview, jobject rawSession, jobject rawRequest, jobject rawResult)
+                static void cameraCaptureSessionCaptureFailedCallback (JNIEnv*, jobject /*object*/, jlong host, jboolean isPreview, jobject rawSession, jobject rawRequest, jobject rawResult)
                 {
-                    LocalRef<jobject> session (env->NewLocalRef (rawSession));
-                    LocalRef<jobject> request (env->NewLocalRef (rawRequest));
-                    LocalRef<jobject> result (env->NewLocalRef (rawResult));
+                    if (auto* myself = reinterpret_cast<StillPictureTaker*> (host))
+                    {
+                        LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+                        LocalRef<jobject> request (getEnv()->NewLocalRef(rawRequest));
+                        LocalRef<jobject> result (getEnv()->NewLocalRef(rawResult));
 
-                    t.cameraCaptureSessionCaptureFailed (isPreview != 0, session, request, result);
+                        myself->cameraCaptureSessionCaptureFailed (isPreview != 0, session, request, result);
+                    }
                 }
 
-                static void cameraCaptureSessionCaptureProgressedCallback (JNIEnv* env, StillPictureTaker& t, jboolean isPreview, jobject rawSession, jobject rawRequest, jobject rawResult)
+                static void cameraCaptureSessionCaptureProgressedCallback (JNIEnv*, jobject /*object*/, jlong host, jboolean isPreview, jobject rawSession, jobject rawRequest, jobject rawResult)
                 {
-                    LocalRef<jobject> session (env->NewLocalRef (rawSession));
-                    LocalRef<jobject> request (env->NewLocalRef (rawRequest));
-                    LocalRef<jobject> result (env->NewLocalRef (rawResult));
+                    if (auto* myself = reinterpret_cast<StillPictureTaker*> (host))
+                    {
+                        LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+                        LocalRef<jobject> request (getEnv()->NewLocalRef(rawRequest));
+                        LocalRef<jobject> result (getEnv()->NewLocalRef(rawResult));
 
-                    t.cameraCaptureSessionCaptureProgressed (isPreview != 0, session, request, result);
+                        myself->cameraCaptureSessionCaptureProgressed (isPreview != 0, session, request, result);
+                    }
                 }
 
-                static void cameraCaptureSessionCaptureSequenceAbortedCallback (JNIEnv* env, StillPictureTaker& t, jboolean isPreview, jobject rawSession, jint sequenceId)
+                static void cameraCaptureSessionCaptureSequenceAbortedCallback (JNIEnv*, jobject /*object*/, jlong host, jboolean isPreview, jobject rawSession, jint sequenceId)
                 {
-                    LocalRef<jobject> session (env->NewLocalRef (rawSession));
+                    if (auto* myself = reinterpret_cast<StillPictureTaker*> (host))
+                    {
+                        LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
 
-                    t.cameraCaptureSessionCaptureSequenceAborted (isPreview != 0, session, sequenceId);
+                        myself->cameraCaptureSessionCaptureSequenceAborted (isPreview != 0, session, sequenceId);
+                    }
                 }
 
-                static void cameraCaptureSessionCaptureSequenceCompletedCallback (JNIEnv* env, StillPictureTaker& t, jboolean isPreview, jobject rawSession, jint sequenceId, jlong frameNumber)
+                static void cameraCaptureSessionCaptureSequenceCompletedCallback (JNIEnv*, jobject /*object*/, jlong host, jboolean isPreview, jobject rawSession, jint sequenceId, jlong frameNumber)
                 {
-                    LocalRef<jobject> session (env->NewLocalRef (rawSession));
+                    if (auto* myself = reinterpret_cast<StillPictureTaker*> (host))
+                    {
+                        LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
 
-                    t.cameraCaptureSessionCaptureSequenceCompleted (isPreview != 0, session, sequenceId, frameNumber);
+                        myself->cameraCaptureSessionCaptureSequenceCompleted (isPreview != 0, session, sequenceId, frameNumber);
+                    }
                 }
 
-                static void cameraCaptureSessionCaptureStartedCallback (JNIEnv* env, StillPictureTaker& t, jboolean isPreview, jobject rawSession, jobject rawRequest, jlong timestamp, jlong frameNumber)
+                static void cameraCaptureSessionCaptureStartedCallback (JNIEnv*, jobject /*object*/, jlong host, jboolean isPreview, jobject rawSession, jobject rawRequest, jlong timestamp, jlong frameNumber)
                 {
-                    LocalRef<jobject> session (env->NewLocalRef (rawSession));
-                    LocalRef<jobject> request (env->NewLocalRef (rawRequest));
+                    if (auto* myself = reinterpret_cast<StillPictureTaker*> (host))
+                    {
+                        LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+                        LocalRef<jobject> request (getEnv()->NewLocalRef(rawRequest));
 
-                    t.cameraCaptureSessionCaptureStarted (isPreview != 0, session, request, timestamp, frameNumber);
+                        myself->cameraCaptureSessionCaptureStarted (isPreview != 0, session, request, timestamp, frameNumber);
+                    }
                 }
             };
 
@@ -2096,11 +2120,11 @@ private:
             //==============================================================================
             #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK)    \
                 METHOD (constructor, "<init>", "(J)V") \
-                CALLBACK (generatedCallback<&CaptureSession::cameraCaptureSessionActiveCallback>,          "cameraCaptureSessionActive",          "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
-                CALLBACK (generatedCallback<&CaptureSession::cameraCaptureSessionClosedCallback>,          "cameraCaptureSessionClosed",          "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
-                CALLBACK (generatedCallback<&CaptureSession::cameraCaptureSessionConfigureFailedCallback>, "cameraCaptureSessionConfigureFailed", "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
-                CALLBACK (generatedCallback<&CaptureSession::cameraCaptureSessionConfiguredCallback>,      "cameraCaptureSessionConfigured",      "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
-                CALLBACK (generatedCallback<&CaptureSession::cameraCaptureSessionReadyCallback>,           "cameraCaptureSessionReady",           "(JLandroid/hardware/camera2/CameraCaptureSession;)V")
+                CALLBACK(cameraCaptureSessionActiveCallback,          "cameraCaptureSessionActive",          "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
+                CALLBACK(cameraCaptureSessionClosedCallback,          "cameraCaptureSessionClosed",          "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
+                CALLBACK(cameraCaptureSessionConfigureFailedCallback, "cameraCaptureSessionConfigureFailed", "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
+                CALLBACK(cameraCaptureSessionConfiguredCallback,      "cameraCaptureSessionConfigured",      "(JLandroid/hardware/camera2/CameraCaptureSession;)V") \
+                CALLBACK(cameraCaptureSessionReadyCallback,           "cameraCaptureSessionReady",           "(JLandroid/hardware/camera2/CameraCaptureSession;)V")
 
             DECLARE_JNI_CLASS_WITH_MIN_SDK (CameraCaptureSessionStateCallback, "com/rmsl/juce/CameraCaptureSessionStateCallback", 21)
             #undef JNI_CLASS_MEMBERS
@@ -2142,81 +2166,126 @@ private:
                 env->CallVoidMethod (captureRequestBuilder, CaptureRequestBuilder.set, jKey.get(), jValue.get());
             }
 
-            //==============================================================================
-            static void cameraCaptureSessionActiveCallback ([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] CaptureSession& t,
-                                                            [[maybe_unused]] jobject rawSession)
+            void cameraCaptureSessionActive (jobject session)
             {
                 JUCE_CAMERA_LOG ("cameraCaptureSessionActive()");
+                ignoreUnused (session);
             }
 
-            static void cameraCaptureSessionClosedCallback ([[maybe_unused]] JNIEnv* env,
-                                                            CaptureSession& t,
-                                                            [[maybe_unused]] jobject rawSession)
+            void cameraCaptureSessionClosed (jobject session)
             {
                 JUCE_CAMERA_LOG ("cameraCaptureSessionClosed()");
+                ignoreUnused (session);
 
-                t.closedEvent.signal();
+                closedEvent.signal();
             }
 
-            static void cameraCaptureSessionConfigureFailedCallback ([[maybe_unused]] JNIEnv* env,
-                                                                     CaptureSession& t,
-                                                                     [[maybe_unused]] jobject rawSession)
+            void cameraCaptureSessionConfigureFailed (jobject session)
             {
                 JUCE_CAMERA_LOG ("cameraCaptureSessionConfigureFailed()");
+                ignoreUnused (session);
 
-                MessageManager::callAsync ([weakRef = WeakReference<CaptureSession> { &t }]
-                                           {
-                                               if (weakRef != nullptr)
-                                                   weakRef->configuredCallback.captureSessionConfigured (nullptr);
-                                           });
+                MessageManager::callAsync ([weakRef = WeakReference<CaptureSession> { this }]
+                {
+                    if (weakRef != nullptr)
+                        weakRef->configuredCallback.captureSessionConfigured (nullptr);
+                });
             }
 
-            static void cameraCaptureSessionConfiguredCallback (JNIEnv* env, CaptureSession& t, jobject rawSession)
+            void cameraCaptureSessionConfigured (const LocalRef<jobject>& session)
             {
-                LocalRef<jobject> session (env->NewLocalRef (rawSession));
                 JUCE_CAMERA_LOG ("cameraCaptureSessionConfigured()");
 
-                if (t.pendingClose.get() == 1)
+                if (pendingClose.get() == 1)
                 {
                     // Already closing, bailout.
-                    t.closedEvent.signal();
+                    closedEvent.signal();
 
                     GlobalRef s (session);
 
                     MessageManager::callAsync ([s]()
-                                               {
-                                                   getEnv()->CallVoidMethod (s, CameraCaptureSession.close);
-                                               });
+                        {
+                            getEnv()->CallVoidMethod (s, CameraCaptureSession.close);
+                        });
 
                     return;
                 }
 
                 {
-                    const ScopedLock lock (t.captureSessionLock);
-                    t.captureSession = GlobalRef (session);
+                    const ScopedLock lock (captureSessionLock);
+                    captureSession = GlobalRef (session);
                 }
 
-                MessageManager::callAsync ([weakRef = WeakReference<CaptureSession> { &t }]
-                                           {
-                                               if (weakRef == nullptr)
-                                                   return;
+                MessageManager::callAsync ([weakRef = WeakReference<CaptureSession> { this }]
+                {
+                    if (weakRef == nullptr)
+                        return;
 
-                                               weakRef->stillPictureTaker.reset (new StillPictureTaker (weakRef->captureSession,
-                                                                                                        weakRef->captureRequestBuilder,
-                                                                                                        weakRef->previewCaptureRequest,
-                                                                                                        weakRef->handler,
-                                                                                                        weakRef->autoFocusMode));
+                    weakRef->stillPictureTaker.reset (new StillPictureTaker (weakRef->captureSession,
+                                                                             weakRef->captureRequestBuilder,
+                                                                             weakRef->previewCaptureRequest,
+                                                                             weakRef->handler,
+                                                                             weakRef->autoFocusMode));
 
-                                               weakRef->configuredCallback.captureSessionConfigured (weakRef.get());
-                                           });
+                    weakRef->configuredCallback.captureSessionConfigured (weakRef.get());
+                });
             }
 
-            static void cameraCaptureSessionReadyCallback ([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] CaptureSession& t,
-                                                           [[maybe_unused]] jobject rawSession)
+            void cameraCaptureSessionReady (const LocalRef<jobject>& session)
             {
                 JUCE_CAMERA_LOG ("cameraCaptureSessionReady()");
+                ignoreUnused (session);
+            }
+
+            //==============================================================================
+            static void cameraCaptureSessionActiveCallback (JNIEnv*, jobject, jlong host, jobject rawSession)
+            {
+                if (auto* myself = reinterpret_cast<CaptureSession*> (host))
+                {
+                    LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+
+                    myself->cameraCaptureSessionActive (session);
+                }
+            }
+
+            static void cameraCaptureSessionClosedCallback (JNIEnv*, jobject, jlong host, jobject rawSession)
+            {
+                if (auto* myself = reinterpret_cast<CaptureSession*> (host))
+                {
+                    LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+
+                    myself->cameraCaptureSessionClosed (session);
+                }
+            }
+
+            static void cameraCaptureSessionConfigureFailedCallback (JNIEnv*, jobject, jlong host, jobject rawSession)
+            {
+                if (auto* myself = reinterpret_cast<CaptureSession*> (host))
+                {
+                    LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+
+                    myself->cameraCaptureSessionConfigureFailed (session);
+                }
+            }
+
+            static void cameraCaptureSessionConfiguredCallback (JNIEnv*, jobject, jlong host, jobject rawSession)
+            {
+                if (auto* myself = reinterpret_cast<CaptureSession*> (host))
+                {
+                    LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+
+                    myself->cameraCaptureSessionConfigured (session);
+                }
+            }
+
+            static void cameraCaptureSessionReadyCallback (JNIEnv*, jobject, jlong host, jobject rawSession)
+            {
+                if (auto* myself = reinterpret_cast<CaptureSession*> (host))
+                {
+                    LocalRef<jobject> session (getEnv()->NewLocalRef(rawSession));
+
+                    myself->cameraCaptureSessionReady (session);
+                }
             }
 
             //==============================================================================
@@ -2314,10 +2383,10 @@ private:
         //==============================================================================
         #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK)    \
             METHOD (constructor, "<init>", "(J)V") \
-            CALLBACK (generatedCallback<&ScopedCameraDevice::cameraDeviceStateClosedCallback>,       "cameraDeviceStateClosed",       "(JLandroid/hardware/camera2/CameraDevice;)V")  \
-            CALLBACK (generatedCallback<&ScopedCameraDevice::cameraDeviceStateDisconnectedCallback>, "cameraDeviceStateDisconnected", "(JLandroid/hardware/camera2/CameraDevice;)V")  \
-            CALLBACK (generatedCallback<&ScopedCameraDevice::cameraDeviceStateErrorCallback>,        "cameraDeviceStateError",        "(JLandroid/hardware/camera2/CameraDevice;I)V") \
-            CALLBACK (generatedCallback<&ScopedCameraDevice::cameraDeviceStateOpenedCallback>,       "cameraDeviceStateOpened",       "(JLandroid/hardware/camera2/CameraDevice;)V")
+            CALLBACK (cameraDeviceStateClosedCallback,       "cameraDeviceStateClosed",       "(JLandroid/hardware/camera2/CameraDevice;)V")  \
+            CALLBACK (cameraDeviceStateDisconnectedCallback, "cameraDeviceStateDisconnected", "(JLandroid/hardware/camera2/CameraDevice;)V")  \
+            CALLBACK (cameraDeviceStateErrorCallback,        "cameraDeviceStateError",        "(JLandroid/hardware/camera2/CameraDevice;I)V") \
+            CALLBACK (cameraDeviceStateOpenedCallback,       "cameraDeviceStateOpened",       "(JLandroid/hardware/camera2/CameraDevice;)V")
 
         DECLARE_JNI_CLASS_WITH_MIN_SDK (CameraDeviceStateCallback, "com/rmsl/juce/CameraDeviceStateCallback", 21)
         #undef JNI_CLASS_MEMBERS
@@ -2330,66 +2399,92 @@ private:
         }
 
         //==============================================================================
+        void cameraDeviceStateClosed()
+        {
+            JUCE_CAMERA_LOG ("cameraDeviceStateClosed()");
+
+            closedEvent.signal();
+        }
+
+        void cameraDeviceStateDisconnected()
+        {
+            JUCE_CAMERA_LOG ("cameraDeviceStateDisconnected()");
+
+            if (pendingOpen.compareAndSetBool (0, 1))
+            {
+                openError = "Device disconnected";
+
+                notifyOpenResult();
+            }
+
+            MessageManager::callAsync ([this]() { close(); });
+        }
+
+        void cameraDeviceStateError (int errorCode)
+        {
+            String error = cameraErrorCodeToString (errorCode);
+
+            JUCE_CAMERA_LOG ("cameraDeviceStateError(), error: " + error);
+
+            if (pendingOpen.compareAndSetBool (0, 1))
+            {
+                openError = error;
+
+                notifyOpenResult();
+            }
+
+            fatalErrorOccurred.set (1);
+
+            MessageManager::callAsync ([this, error]()
+                                       {
+                                           owner.cameraDeviceError (error);
+                                           close();
+                                       });
+        }
+
+        void cameraDeviceStateOpened (const LocalRef<jobject>& cameraDeviceToUse)
+        {
+            JUCE_CAMERA_LOG ("cameraDeviceStateOpened()");
+
+            pendingOpen.set (0);
+
+            cameraDevice = GlobalRef (cameraDeviceToUse);
+
+            notifyOpenResult();
+        }
+
         void notifyOpenResult()
         {
             MessageManager::callAsync ([this]() { owner.cameraOpenFinished (openError); });
         }
 
         //==============================================================================
-        static void cameraDeviceStateClosedCallback (JNIEnv*, ScopedCameraDevice& s, jobject)
+        static void JNICALL cameraDeviceStateClosedCallback (JNIEnv*, jobject, jlong host, jobject)
         {
-            JUCE_CAMERA_LOG ("cameraDeviceStateClosed()");
-
-            s.closedEvent.signal();
+            if (auto* myself = reinterpret_cast<ScopedCameraDevice*>(host))
+                myself->cameraDeviceStateClosed();
         }
 
-        static void cameraDeviceStateDisconnectedCallback (JNIEnv*, ScopedCameraDevice& s, jobject)
+        static void JNICALL cameraDeviceStateDisconnectedCallback (JNIEnv*, jobject, jlong host, jobject)
         {
-            JUCE_CAMERA_LOG ("cameraDeviceStateDisconnected()");
+            if (auto* myself = reinterpret_cast<ScopedCameraDevice*>(host))
+                myself->cameraDeviceStateDisconnected();
+        }
 
-            if (s.pendingOpen.compareAndSetBool (0, 1))
+        static void JNICALL cameraDeviceStateErrorCallback (JNIEnv*, jobject, jlong host, jobject, jint error)
+        {
+            if (auto* myself = reinterpret_cast<ScopedCameraDevice*>(host))
+                myself->cameraDeviceStateError (error);
+        }
+
+        static void JNICALL cameraDeviceStateOpenedCallback (JNIEnv*, jobject, jlong host, jobject rawCamera)
+        {
+            if (auto* myself = reinterpret_cast<ScopedCameraDevice*>(host))
             {
-                s.openError = "Device disconnected";
+                LocalRef<jobject> camera(getEnv()->NewLocalRef(rawCamera));
 
-                s.notifyOpenResult();
+                myself->cameraDeviceStateOpened (camera);
             }
-
-            MessageManager::callAsync ([&s] { s.close(); });
-        }
-
-        static void cameraDeviceStateErrorCallback (JNIEnv*, ScopedCameraDevice& s, jobject, jint errorCode)
-        {
-            auto error = cameraErrorCodeToString (errorCode);
-
-            JUCE_CAMERA_LOG ("cameraDeviceStateError(), error: " + error);
-
-            if (s.pendingOpen.compareAndSetBool (0, 1))
-            {
-                s.openError = error;
-
-                s.notifyOpenResult();
-            }
-
-            s.fatalErrorOccurred.set (1);
-
-            MessageManager::callAsync ([&s, error]()
-                                       {
-                                           s.owner.cameraDeviceError (error);
-                                           s.close();
-                                       });
-        }
-
-        static void cameraDeviceStateOpenedCallback (JNIEnv* env, ScopedCameraDevice& s, jobject cameraDeviceToUse)
-        {
-            JUCE_CAMERA_LOG ("cameraDeviceStateOpened()");
-
-            LocalRef<jobject> camera (env->NewLocalRef (cameraDeviceToUse));
-
-            s.pendingOpen.set (0);
-
-            s.cameraDevice = GlobalRef (camera);
-
-            s.notifyOpenResult();
         }
     };
 
@@ -2729,7 +2824,7 @@ private:
             METHOD (constructor,          "<init>",               "(JLandroid/content/Context;I)V") \
             METHOD (disable,              "disable",              "()V") \
             METHOD (enable,               "enable",               "()V") \
-            CALLBACK (generatedCallback<&DeviceOrientationChangeListener::orientationChanged>, "deviceOrientationChanged", "(JI)V")
+            CALLBACK (deviceOrientationChanged, "deviceOrientationChanged", "(JI)V")
 
         DECLARE_JNI_CLASS_WITH_MIN_SDK (OrientationEventListener, "com/rmsl/juce/JuceOrientationEventListener", 21)
         #undef JNI_CLASS_MEMBERS
@@ -2744,7 +2839,7 @@ private:
         }
 
         //==============================================================================
-        static void orientationChanged (JNIEnv*, DeviceOrientationChangeListener& t, jint orientation)
+        void orientationChanged (int orientation)
         {
             jassert (orientation < 360);
 
@@ -2752,31 +2847,25 @@ private:
             if (orientation < 0)
                 return;
 
-            const auto oldOrientation = t.deviceOrientation;
-
-            t.deviceOrientation = [orientation]
-            {
-                if (orientation > (360 - 45) || orientation < 45)
-                    return Desktop::upright;
-
-                if (orientation < 135)
-                    return Desktop::rotatedClockwise;
-
-                if (orientation < 225)
-                    return Desktop::upsideDown;
-
-                return Desktop::rotatedAntiClockwise;
-            }();
+            auto oldOrientation = deviceOrientation;
 
             // NB: this assumes natural position to be portrait always, but some devices may be landscape...
+            if (orientation > (360 - 45) || orientation < 45)
+                deviceOrientation = Desktop::upright;
+            else if (orientation < 135)
+                deviceOrientation = Desktop::rotatedClockwise;
+            else if (orientation < 225)
+                deviceOrientation = Desktop::upsideDown;
+            else
+                deviceOrientation = Desktop::rotatedAntiClockwise;
 
-            if (oldOrientation != t.deviceOrientation)
+            if (oldOrientation != deviceOrientation)
             {
-                t.lastKnownScreenOrientation = Desktop::getInstance().getCurrentOrientation();
+                lastKnownScreenOrientation = Desktop::getInstance().getCurrentOrientation();
 
                 // Need to update preview transform, but screen orientation will change slightly
                 // later than sensor orientation.
-                t.startTimer (500);
+                startTimer (500);
             }
         }
 
@@ -2800,6 +2889,12 @@ private:
                 stopTimer();
                 numChecksForOrientationChange = 10;
             }
+        }
+
+        static void deviceOrientationChanged (JNIEnv*, jobject /*obj*/, jlong host, jint orientation)
+        {
+            if (auto* myself = reinterpret_cast<DeviceOrientationChangeListener*> (host))
+                myself->orientationChanged (orientation);
         }
     };
 
@@ -3094,7 +3189,7 @@ private:
     {
         auto* env = getEnv();
 
-        auto quitSafelyMethod = env->GetMethodID (AndroidHandlerThread, "quitSafely", "()Z");
+        auto quitSafelyMethod = env->GetMethodID(AndroidHandlerThread, "quitSafely", "()Z");
 
         // this code will only run on SDK >= 21
         jassert(quitSafelyMethod != nullptr);
@@ -3182,3 +3277,9 @@ String CameraDevice::getFileExtension()
 {
     return ".mp4";
 }
+
+//==============================================================================
+CameraDevice::Pimpl::ScopedCameraDevice::CaptureSession::StillPictureTaker::CameraCaptureSessionCaptureCallback_Class CameraDevice::Pimpl::ScopedCameraDevice::CaptureSession::StillPictureTaker::CameraCaptureSessionCaptureCallback;
+CameraDevice::Pimpl::ScopedCameraDevice::CameraDeviceStateCallback_Class CameraDevice::Pimpl::ScopedCameraDevice::CameraDeviceStateCallback;
+CameraDevice::Pimpl::ScopedCameraDevice::CaptureSession::CameraCaptureSessionStateCallback_Class CameraDevice::Pimpl::ScopedCameraDevice::CaptureSession::CameraCaptureSessionStateCallback;
+CameraDevice::Pimpl::DeviceOrientationChangeListener::OrientationEventListener_Class CameraDevice::Pimpl::DeviceOrientationChangeListener::OrientationEventListener;

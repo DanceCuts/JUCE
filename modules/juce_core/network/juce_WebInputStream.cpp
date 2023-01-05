@@ -96,11 +96,4 @@ void WebInputStream::createHeadersAndPostData (const URL& aURL,
     aURL.createHeadersAndPostData (headers, data, addParametersToBody);
 }
 
-bool WebInputStream::Listener::postDataSendProgress ([[maybe_unused]] WebInputStream& request,
-                                                     [[maybe_unused]] int bytesSent,
-                                                     [[maybe_unused]] int totalBytes)
-{
-    return true;
-}
-
 } // namespace juce

@@ -397,7 +397,7 @@ bool DirectoryIterator::NativeIterator::next (String& filenameFound,
 
 
 //==============================================================================
-bool JUCE_CALLTYPE Process::openDocument (const String& fileName, [[maybe_unused]] const String& parameters)
+bool JUCE_CALLTYPE Process::openDocument (const String& fileName, const String& parameters)
 {
     JUCE_AUTORELEASEPOOL
     {
@@ -406,6 +406,8 @@ bool JUCE_CALLTYPE Process::openDocument (const String& fileName, [[maybe_unused
                                                                                        : [NSURL URLWithString: fileNameAsNS];
 
       #if JUCE_IOS
+        ignoreUnused (parameters);
+
         if (@available (iOS 10.0, *))
         {
             [[UIApplication sharedApplication] openURL: filenameAsURL

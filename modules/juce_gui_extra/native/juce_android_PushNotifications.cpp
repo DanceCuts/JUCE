@@ -447,18 +447,20 @@ struct PushNotifications::Pimpl
       #endif
     }
 
-    void notifyListenersTokenRefreshed ([[maybe_unused]] const String& token)
+    void notifyListenersTokenRefreshed (const String& token)
     {
       #if defined(JUCE_FIREBASE_INSTANCE_ID_SERVICE_CLASSNAME)
         MessageManager::callAsync ([this, token]
         {
             owner.listeners.call ([&] (Listener& l) { l.deviceTokenRefreshed (token); });
         });
+      #else
+        ignoreUnused (token);
       #endif
     }
 
     //==============================================================================
-    void subscribeToTopic ([[maybe_unused]] const String& topic)
+    void subscribeToTopic (const String& topic)
     {
       #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
         auto* env = getEnv();
@@ -467,10 +469,12 @@ struct PushNotifications::Pimpl
                                                                                  FirebaseMessaging.getInstance));
 
         env->CallObjectMethod (firebaseMessaging, FirebaseMessaging.subscribeToTopic, javaString (topic).get());
+      #else
+        ignoreUnused (topic);
       #endif
     }
 
-    void unsubscribeFromTopic ([[maybe_unused]] const String& topic)
+    void unsubscribeFromTopic (const String& topic)
     {
       #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
         auto* env = getEnv();
@@ -479,15 +483,17 @@ struct PushNotifications::Pimpl
                                                                                  FirebaseMessaging.getInstance));
 
         env->CallObjectMethod (firebaseMessaging, FirebaseMessaging.unsubscribeFromTopic, javaString (topic).get());
+      #else
+        ignoreUnused (topic);
       #endif
     }
 
-    void sendUpstreamMessage ([[maybe_unused]] const String& serverSenderId,
-                              [[maybe_unused]] const String& collapseKey,
-                              [[maybe_unused]] const String& messageId,
-                              [[maybe_unused]] const String& messageType,
-                              [[maybe_unused]] int timeToLive,
-                              [[maybe_unused]] const StringPairArray& additionalData)
+    void sendUpstreamMessage (const String& serverSenderId,
+                              const String& collapseKey,
+                              const String& messageId,
+                              const String& messageType,
+                              int timeToLive,
+                              const StringPairArray& additionalData)
     {
       #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
         auto* env = getEnv();
@@ -515,10 +521,13 @@ struct PushNotifications::Pimpl
                                                                                  FirebaseMessaging.getInstance));
 
         env->CallVoidMethod (firebaseMessaging, FirebaseMessaging.send, message.get());
+      #else
+        ignoreUnused (serverSenderId, collapseKey, messageId, messageType);
+        ignoreUnused (timeToLive, additionalData);
       #endif
     }
 
-    void notifyListenersAboutRemoteNotificationFromSystemTray ([[maybe_unused]] const LocalRef<jobject>& intent)
+    void notifyListenersAboutRemoteNotificationFromSystemTray (const LocalRef<jobject>& intent)
     {
       #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
         auto* env = getEnv();
@@ -527,10 +536,12 @@ struct PushNotifications::Pimpl
         auto notification = remoteNotificationBundleToJuceNotification (bundle);
 
         owner.listeners.call ([&] (Listener& l) { l.handleNotification (false, notification); });
+      #else
+        ignoreUnused (intent);
       #endif
     }
 
-    void notifyListenersAboutRemoteNotificationFromService ([[maybe_unused]] const LocalRef<jobject>& remoteNotification)
+    void notifyListenersAboutRemoteNotificationFromService (const LocalRef<jobject>& remoteNotification)
     {
       #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
         GlobalRef rn (remoteNotification);
@@ -540,6 +551,8 @@ struct PushNotifications::Pimpl
             auto notification = firebaseRemoteNotificationToJuceNotification (rn.get());
             owner.listeners.call ([&] (Listener& l) { l.handleNotification (false, notification); });
         });
+      #else
+        ignoreUnused (remoteNotification);
       #endif
     }
 
@@ -553,7 +566,7 @@ struct PushNotifications::Pimpl
       #endif
     }
 
-    void notifyListenersAboutUpstreamMessageSent ([[maybe_unused]] const LocalRef<jstring>& messageId)
+    void notifyListenersAboutUpstreamMessageSent (const LocalRef<jstring>& messageId)
     {
       #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
         GlobalRef mid (LocalRef<jobject>(messageId.get()));
@@ -563,11 +576,13 @@ struct PushNotifications::Pimpl
             auto midString = juceString ((jstring) mid.get());
             owner.listeners.call ([&] (Listener& l) { l.upstreamMessageSent (midString); });
         });
+      #else
+        ignoreUnused (messageId);
       #endif
     }
 
-    void notifyListenersAboutUpstreamMessageSendingError ([[maybe_unused]] const LocalRef<jstring>& messageId,
-                                                          [[maybe_unused]] const LocalRef<jstring>& error)
+    void notifyListenersAboutUpstreamMessageSendingError (const LocalRef<jstring>& messageId,
+                                                          const LocalRef<jstring>& error)
     {
       #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
         GlobalRef mid (LocalRef<jobject>(messageId.get())), e (LocalRef<jobject>(error.get()));
@@ -579,6 +594,8 @@ struct PushNotifications::Pimpl
 
             owner.listeners.call ([&] (Listener& l) { l.upstreamMessageSendingError (midString, eString); });
         });
+      #else
+        ignoreUnused (messageId, error);
       #endif
     }
 
@@ -1549,6 +1566,8 @@ struct JuceFirebaseInstanceIdService
             instance->pimpl->notifyListenersTokenRefreshed (juceString (static_cast<jstring> (token)));
     }
 };
+
+JuceFirebaseInstanceIdService::InstanceIdService_Class JuceFirebaseInstanceIdService::InstanceIdService;
 #endif
 
 #if defined(JUCE_FIREBASE_MESSAGING_SERVICE_CLASSNAME)
@@ -1590,6 +1609,8 @@ struct JuceFirebaseMessagingService
                                                                               LocalRef<jstring> (static_cast<jstring> (error)));
     }
 };
+
+JuceFirebaseMessagingService::MessagingService_Class  JuceFirebaseMessagingService::MessagingService;
 #endif
 
 //==============================================================================

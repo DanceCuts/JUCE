@@ -101,7 +101,8 @@ struct AndroidDocumentDetail
         auto* env = getEnv();
         LocalRef<jobjectArray> array { env->NewObjectArray (sizeof... (args), JavaString, nullptr) };
 
-        (env->SetObjectArrayElement (array.get(), Ix, args.get()), ...);
+        int unused[] { (env->SetObjectArrayElement (array.get(), Ix, args.get()), 0)... };
+        ignoreUnused (unused);
 
         return array;
     }
@@ -744,17 +745,21 @@ struct AndroidDocument::Utils
 };
 
 //==============================================================================
-void AndroidDocumentPermission::takePersistentReadWriteAccess ([[maybe_unused]] const URL& url)
+void AndroidDocumentPermission::takePersistentReadWriteAccess (const URL& url)
 {
    #if JUCE_ANDROID
     AndroidDocumentDetail::setPermissions (url, ContentResolver19.takePersistableUriPermission);
+   #else
+    ignoreUnused (url);
    #endif
 }
 
-void AndroidDocumentPermission::releasePersistentReadWriteAccess ([[maybe_unused]] const URL& url)
+void AndroidDocumentPermission::releasePersistentReadWriteAccess (const URL& url)
 {
    #if JUCE_ANDROID
     AndroidDocumentDetail::setPermissions (url, ContentResolver19.releasePersistableUriPermission);
+   #else
+    ignoreUnused (url);
    #endif
 }
 
@@ -812,7 +817,7 @@ AndroidDocument AndroidDocument::fromFile (const File& filePath)
                                                 : nullptr };
 }
 
-AndroidDocument AndroidDocument::fromDocument ([[maybe_unused]] const URL& documentUrl)
+AndroidDocument AndroidDocument::fromDocument (const URL& documentUrl)
 {
    #if JUCE_ANDROID
     if (getAndroidSDKVersion() < 19)
@@ -834,11 +839,12 @@ AndroidDocument AndroidDocument::fromDocument ([[maybe_unused]] const URL& docum
 
     return AndroidDocument { Utils::createPimplForSdk (javaUri) };
    #else
+    ignoreUnused (documentUrl);
     return AndroidDocument{};
    #endif
 }
 
-AndroidDocument AndroidDocument::fromTree ([[maybe_unused]] const URL& treeUrl)
+AndroidDocument AndroidDocument::fromTree (const URL& treeUrl)
 {
    #if JUCE_ANDROID
     if (getAndroidSDKVersion() < 21)
@@ -868,6 +874,7 @@ AndroidDocument AndroidDocument::fromTree ([[maybe_unused]] const URL& treeUrl)
 
     return AndroidDocument { Utils::createPimplForSdk (documentUri) };
    #else
+    ignoreUnused (treeUrl);
     return AndroidDocument{};
    #endif
 }

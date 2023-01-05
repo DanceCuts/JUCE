@@ -962,12 +962,14 @@ public:
                               , public Timer
                              #endif
     {
-        EditorCompWrapper (JuceVSTWrapper& w, AudioProcessorEditor& editor, [[maybe_unused]] float initialScale)
+        EditorCompWrapper (JuceVSTWrapper& w, AudioProcessorEditor& editor, float initialScale)
             : wrapper (w)
         {
             editor.setOpaque (true);
            #if ! JUCE_MAC
             editor.setScaleFactor (initialScale);
+           #else
+            ignoreUnused (initialScale);
            #endif
             addAndMakeVisible (editor);
 
@@ -1712,12 +1714,13 @@ private:
         return 0;
     }
 
-    pointer_sized_int handlePreAudioProcessingEvents ([[maybe_unused]] VstOpCodeArguments args)
+    pointer_sized_int handlePreAudioProcessingEvents (VstOpCodeArguments args)
     {
        #if JucePlugin_WantsMidiInput || JucePlugin_IsMidiEffect
         VSTMidiEventList::addEventsToMidiBuffer ((Vst2::VstEvents*) args.ptr, midiEvents);
         return 1;
        #else
+        ignoreUnused (args);
         return 0;
        #endif
     }
@@ -1970,13 +1973,13 @@ private:
         if (pluginHasSidechainsOrAuxs() || processor->isMidiEffect())
             return false;
 
-        auto inputLayout  = processor->getChannelLayoutOfBus (true, 0);
-        auto outputLayout = processor->getChannelLayoutOfBus (false, 0);
+        auto inputLayout  = processor->getChannelLayoutOfBus (true,  0);
+        auto outputLayout = processor->getChannelLayoutOfBus (false,  0);
 
-        const auto speakerBaseSize = offsetof (Vst2::VstSpeakerArrangement, speakers);
+        auto speakerBaseSize = sizeof (Vst2::VstSpeakerArrangement) - (sizeof (Vst2::VstSpeakerProperties) * 8);
 
-        cachedInArrangement .malloc (speakerBaseSize + (static_cast<std::size_t> (inputLayout. size()) * sizeof (Vst2::VstSpeakerProperties)), 1);
-        cachedOutArrangement.malloc (speakerBaseSize + (static_cast<std::size_t> (outputLayout.size()) * sizeof (Vst2::VstSpeakerProperties)), 1);
+        cachedInArrangement .malloc (speakerBaseSize + (static_cast<std::size_t> (inputLayout. size()) * sizeof (Vst2::VstSpeakerArrangement)), 1);
+        cachedOutArrangement.malloc (speakerBaseSize + (static_cast<std::size_t> (outputLayout.size()) * sizeof (Vst2::VstSpeakerArrangement)), 1);
 
         *pluginInput  = cachedInArrangement. getData();
         *pluginOutput = cachedOutArrangement.getData();
@@ -2010,7 +2013,7 @@ private:
         return 0;
     }
 
-    pointer_sized_int handleSetContentScaleFactor ([[maybe_unused]] float scale, [[maybe_unused]] bool force = false)
+    pointer_sized_int handleSetContentScaleFactor (float scale, bool force = false)
     {
         checkWhetherMessageThreadIsCorrect();
        #if JUCE_LINUX || JUCE_BSD
@@ -2027,6 +2030,9 @@ private:
             if (editorComp != nullptr)
                 editorComp->setContentScaleFactor (editorScaleFactor);
         }
+
+       #else
+        ignoreUnused (scale, force);
        #endif
 
         return 1;
@@ -2193,6 +2199,8 @@ JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes")
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* VSTPluginMain (Vst2::audioMasterCallback audioMaster);
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* VSTPluginMain (Vst2::audioMasterCallback audioMaster)
     {
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_VST;
+
         initialiseMacVST();
         return pluginEntryPoint (audioMaster);
     }
@@ -2200,6 +2208,8 @@ JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes")
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* main_macho (Vst2::audioMasterCallback audioMaster);
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* main_macho (Vst2::audioMasterCallback audioMaster)
     {
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_VST;
+
         initialiseMacVST();
         return pluginEntryPoint (audioMaster);
     }
@@ -2211,12 +2221,16 @@ JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes")
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* VSTPluginMain (Vst2::audioMasterCallback audioMaster);
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* VSTPluginMain (Vst2::audioMasterCallback audioMaster)
     {
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_VST;
+
         return pluginEntryPoint (audioMaster);
     }
 
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* main_plugin (Vst2::audioMasterCallback audioMaster) asm ("main");
     JUCE_EXPORTED_FUNCTION Vst2::AEffect* main_plugin (Vst2::audioMasterCallback audioMaster)
     {
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_VST;
+
         return VSTPluginMain (audioMaster);
     }
 
@@ -2230,12 +2244,16 @@ JUCE_BEGIN_IGNORE_WARNINGS_GCC_LIKE ("-Wmissing-prototypes")
 
     extern "C" __declspec (dllexport) Vst2::AEffect* VSTPluginMain (Vst2::audioMasterCallback audioMaster)
     {
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_VST;
+
         return pluginEntryPoint (audioMaster);
     }
 
    #if ! defined (JUCE_64BIT) && JUCE_MSVC // (can't compile this on win64, but it's not needed anyway with VST2.4)
     extern "C" __declspec (dllexport) int main (Vst2::audioMasterCallback audioMaster)
     {
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_VST;
+
         return (int) pluginEntryPoint (audioMaster);
     }
    #endif

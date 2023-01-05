@@ -251,8 +251,8 @@ public:
         if (pOutputBuffer != nullptr)
         {
             JUCE_DS_LOG ("closing output: " + name);
-            [[maybe_unused]] HRESULT hr = pOutputBuffer->Stop();
-            JUCE_DS_LOG_ERROR (hr);
+            HRESULT hr = pOutputBuffer->Stop();
+            JUCE_DS_LOG_ERROR (hr); ignoreUnused (hr);
 
             pOutputBuffer->Release();
             pOutputBuffer = nullptr;
@@ -555,8 +555,8 @@ public:
         if (pInputBuffer != nullptr)
         {
             JUCE_DS_LOG ("closing input: " + name);
-            [[maybe_unused]] HRESULT hr = pInputBuffer->Stop();
-            JUCE_DS_LOG_ERROR (hr);
+            HRESULT hr = pInputBuffer->Stop();
+            JUCE_DS_LOG_ERROR (hr); ignoreUnused (hr);
 
             pInputBuffer->Release();
             pInputBuffer = nullptr;

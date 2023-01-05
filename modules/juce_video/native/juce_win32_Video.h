@@ -395,7 +395,7 @@ private:
     {
         DirectShowContext (Pimpl& c)  : component (c)
         {
-            [[maybe_unused]] const auto result = CoInitialize (nullptr);
+            ignoreUnused (CoInitialize (nullptr));
         }
 
         ~DirectShowContext() override

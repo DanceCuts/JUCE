@@ -459,7 +459,7 @@ bool ActiveXControlComponent::createControl (const void* controlIID)
 
                 if (newControl->control->DoVerb (OLEIVERB_SHOW, nullptr, newControl->clientSite, 0, hwnd, &rect) == S_OK)
                 {
-                    control = std::move (newControl);
+                    control.reset (newControl.release());
                     control->controlHWND = ActiveXHelpers::getHWND (this);
 
                     if (control->controlHWND != nullptr)
