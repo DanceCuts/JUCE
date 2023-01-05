@@ -112,8 +112,8 @@ private:
 
         if (cp.start (processArgs))
         {
-            [[maybe_unused]] auto childOutput = cp.readAllProcessOutput();
-            DBG (childOutput);
+            auto childOutput = cp.readAllProcessOutput();
+            DBG (childOutput); ignoreUnused (childOutput);
 
             cp.waitForProcessToFinish (10000);
             return tempMP3.getFile().getSize() > 0;

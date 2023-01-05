@@ -271,3 +271,7 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
+
+
+// (This function is called by the app startup code to create our main component)
+Component* createMainContentComponent()     { return new MainContentComponent(); }

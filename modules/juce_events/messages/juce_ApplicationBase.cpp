@@ -199,12 +199,14 @@ String JUCEApplicationBase::getCommandLineParameters()
 {
     String argString;
 
-    for (const auto& arg : getCommandLineParameterArray())
+    for (int i = 1; i < juce_argc; ++i)
     {
-        const auto withQuotes = arg.containsChar (' ') && ! arg.isQuotedString()
-                              ? arg.quoted ('"')
-                              : arg;
-        argString << withQuotes << ' ';
+        String arg { CharPointer_UTF8 (juce_argv[i]) };
+
+        if (arg.containsChar (' ') && ! arg.isQuotedString())
+            arg = arg.quoted ('"');
+
+        argString << arg << ' ';
     }
 
     return argString.trim();
@@ -212,12 +214,7 @@ String JUCEApplicationBase::getCommandLineParameters()
 
 StringArray JUCEApplicationBase::getCommandLineParameterArray()
 {
-    StringArray result;
-
-    for (int i = 1; i < juce_argc; ++i)
-        result.add (CharPointer_UTF8 (juce_argv[i]));
-
-    return result;
+    return StringArray (juce_argv + 1, juce_argc - 1);
 }
 
 int JUCEApplicationBase::main (int argc, const char* argv[])

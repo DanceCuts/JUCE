@@ -2132,7 +2132,7 @@ public:
 
         @see runModalLoop, enterModalState, isCurrentlyModal
     */
-    void exitModalState (int returnValue = 0);
+    void exitModalState (int returnValue);
 
     /** Returns true if this component is the modal one.
 

@@ -280,8 +280,9 @@ void BlowFish::encrypt (MemoryBlock& data) const
     auto size = data.getSize();
     data.setSize (size + (8u - (size % 8u)));
 
-    [[maybe_unused]] auto success = encrypt (data.getData(), size, data.getSize());
+    auto success = encrypt (data.getData(), size, data.getSize());
 
+    ignoreUnused (success);
     jassert (success >= 0);
 }
 

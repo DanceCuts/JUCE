@@ -28,18 +28,17 @@
 namespace juce
 {
 
-inline std::unique_ptr<AudioProcessor> createPluginFilterOfType (AudioProcessor::WrapperType type)
+inline AudioProcessor* JUCE_API JUCE_CALLTYPE createPluginFilterOfType (AudioProcessor::WrapperType type)
 {
-    PluginHostType::jucePlugInClientCurrentWrapperType = type;
     AudioProcessor::setTypeOfNextNewPlugin (type);
-    auto pluginInstance = rawToUniquePtr (::createPluginFilter());
+    AudioProcessor* const pluginInstance = ::createPluginFilter();
     AudioProcessor::setTypeOfNextNewPlugin (AudioProcessor::wrapperType_Undefined);
 
     // your createPluginFilter() method must return an object!
     jassert (pluginInstance != nullptr && pluginInstance->wrapperType == type);
 
    #if JucePlugin_Enable_ARA
-    jassert (dynamic_cast<juce::AudioProcessorARAExtension*> (pluginInstance.get()) != nullptr);
+    jassert (dynamic_cast<juce::AudioProcessorARAExtension*> (pluginInstance) != nullptr);
    #endif
 
     return pluginInstance;

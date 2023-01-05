@@ -46,7 +46,11 @@ struct VSTCallbackHandler
     virtual pointer_sized_int handleVstPluginCanDo (int32 index,
                                                     pointer_sized_int value,
                                                     void* ptr,
-                                                    float opt);
+                                                    float opt)
+    {
+        ignoreUnused (index, value, ptr, opt);
+        return 0;
+    }
 
     /** This is called by the VST plug-in wrapper when it receives unhandled
         vendor specific calls from the host.
@@ -67,7 +71,10 @@ struct VSTCallbackHandler
     /** This is called once by the VST plug-in wrapper after its constructor.
         You can use the supplied function to query the VST host.
     */
-    virtual void handleVstHostCallbackAvailable (std::function<VstHostCallbackType>&& callback);
+    virtual void handleVstHostCallbackAvailable (std::function<VstHostCallbackType>&& callback)
+    {
+        ignoreUnused (callback);
+    }
 };
 
 } // namespace juce

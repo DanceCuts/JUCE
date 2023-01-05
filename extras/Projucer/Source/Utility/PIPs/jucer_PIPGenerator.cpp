@@ -265,9 +265,6 @@ ValueTree PIPGenerator::createExporterChild (const Identifier& exporterIdentifie
         }
     }
 
-    if (exporterIdentifier.toString() == AndroidProjectExporter::getValueTreeTypeName())
-        exporter.setProperty (Ids::androidBluetoothNeeded, true, nullptr);
-
     {
         ValueTree configs (Ids::CONFIGURATIONS);
 

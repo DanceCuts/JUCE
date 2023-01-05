@@ -375,8 +375,9 @@ struct VST3HostContext  : public Vst::IComponentHandler,  // From VST V3.0.0
     tresult PLUGIN_API setDirty (TBool) override;
 
     //==============================================================================
-    tresult PLUGIN_API requestOpenEditor ([[maybe_unused]] FIDString name) override
+    tresult PLUGIN_API requestOpenEditor (FIDString name) override
     {
+        ignoreUnused (name);
         jassertfalse;
         return kResultFalse;
     }
@@ -1387,7 +1388,7 @@ static int compareWithString (Type (&charArray)[N], const String& str)
 }
 
 template <typename Callback>
-static void forEachARAFactory ([[maybe_unused]] IPluginFactory* pluginFactory, [[maybe_unused]] Callback&& cb)
+static void forEachARAFactory (IPluginFactory* pluginFactory, Callback&& cb)
 {
    #if JUCE_PLUGINHOST_ARA && (JUCE_MAC || JUCE_WINDOWS || JUCE_LINUX)
     const auto numClasses = pluginFactory->countClasses();
@@ -1403,11 +1404,12 @@ static void forEachARAFactory ([[maybe_unused]] IPluginFactory* pluginFactory, [
                 break;
         }
     }
+   #else
+    ignoreUnused (pluginFactory, cb);
    #endif
 }
 
-static std::shared_ptr<const ARA::ARAFactory> getARAFactory ([[maybe_unused]] Steinberg::IPluginFactory* pluginFactory,
-                                                             [[maybe_unused]] const String& pluginName)
+static std::shared_ptr<const ARA::ARAFactory> getARAFactory (Steinberg::IPluginFactory* pluginFactory, const String& pluginName)
 {
     std::shared_ptr<const ARA::ARAFactory> factory;
 
@@ -1430,6 +1432,8 @@ static std::shared_ptr<const ARA::ARAFactory> getARAFactory ([[maybe_unused]] St
 
                            return true;
                        });
+   #else
+    ignoreUnused (pluginFactory, pluginName);
    #endif
 
     return factory;
@@ -1663,8 +1667,8 @@ private:
                 return;
             }
 
-            [[maybe_unused]] const auto attachedResult = view->attached ((void*) pluginHandle, defaultVST3WindowType);
-            [[maybe_unused]] const auto warning = warnOnFailure (attachedResult);
+            const auto attachedResult = view->attached ((void*) pluginHandle, defaultVST3WindowType);
+            ignoreUnused (warnOnFailure (attachedResult));
 
             if (attachedResult == kResultOk)
                 attachedCalled = true;
@@ -1685,10 +1689,11 @@ private:
     {
         if (scaleInterface != nullptr)
         {
-            [[maybe_unused]] const auto result = scaleInterface->setContentScaleFactor ((Steinberg::IPlugViewContentScaleSupport::ScaleFactor) getEffectiveScale());
+            const auto result = scaleInterface->setContentScaleFactor ((Steinberg::IPlugViewContentScaleSupport::ScaleFactor) getEffectiveScale());
+            ignoreUnused (result);
 
            #if ! JUCE_MAC
-            [[maybe_unused]] const auto warning = warnOnFailure (result);
+            ignoreUnused (warnOnFailure (result));
            #endif
         }
     }
@@ -1880,7 +1885,8 @@ struct VST3ComponentHolder
         if (classIdx >= 0)
         {
             PClassInfo info;
-            [[maybe_unused]] bool success = (factory->getClassInfo (classIdx, &info) == kResultOk);
+            bool success = (factory->getClassInfo (classIdx, &info) == kResultOk);
+            ignoreUnused (success);
             jassert (success);
 
             VSTComSmartPtr<IPluginFactory2> pf2;
@@ -2386,7 +2392,7 @@ public:
 
         auto configureParameters = [this]
         {
-            initialiseParameterList();
+            refreshParameterList();
             synchroniseStates();
             syncProgramNames();
         };
@@ -3085,9 +3091,9 @@ public:
     }
 
     /** @note Not applicable to VST3 */
-    void setCurrentProgramStateInformation ([[maybe_unused]] const void* data,
-                                            [[maybe_unused]] int sizeInBytes) override
+    void setCurrentProgramStateInformation (const void* data, int sizeInBytes) override
     {
+        ignoreUnused (data, sizeInBytes);
     }
 
 private:
@@ -3216,7 +3222,7 @@ private:
         }
     }
 
-    void initialiseParameterList()
+    void refreshParameterList() override
     {
         AudioProcessorParameterGroup newParameterTree;
 

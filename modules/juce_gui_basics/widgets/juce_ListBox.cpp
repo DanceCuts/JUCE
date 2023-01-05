@@ -1207,8 +1207,9 @@ std::unique_ptr<AccessibilityHandler> ListBox::createAccessibilityHandler()
 }
 
 //==============================================================================
-Component* ListBoxModel::refreshComponentForRow (int, bool, [[maybe_unused]] Component* existingComponentToUpdate)
+Component* ListBoxModel::refreshComponentForRow (int, bool, Component* existingComponentToUpdate)
 {
+    ignoreUnused (existingComponentToUpdate);
     jassert (existingComponentToUpdate == nullptr); // indicates a failure in the code that recycles the components
     return nullptr;
 }

@@ -61,8 +61,10 @@ void AudioSourcePlayer::audioDeviceIOCallbackWithContext (const float* const* in
                                                           float* const* outputChannelData,
                                                           int totalNumOutputChannels,
                                                           int numSamples,
-                                                          [[maybe_unused]] const AudioIODeviceCallbackContext& context)
+                                                          const AudioIODeviceCallbackContext& context)
 {
+    ignoreUnused (context);
+
     // these should have been prepared by audioDeviceAboutToStart()...
     jassert (sampleRate > 0 && bufferSize > 0);
 

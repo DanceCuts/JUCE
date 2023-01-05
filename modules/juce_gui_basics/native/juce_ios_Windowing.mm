@@ -480,7 +480,7 @@ public:
         : callback (std::move (cb)),
           shouldDeleteThis (deleteOnCompletion)
     {
-        if (iOSGlobals::currentlyFocusedPeer != nullptr)
+        if (currentlyFocusedPeer != nullptr)
         {
             UIAlertController* alert = [UIAlertController alertControllerWithTitle: juceStringToNS (opts.getTitle())
                                                                            message: juceStringToNS (opts.getMessage())
@@ -490,9 +490,9 @@ public:
             addButton (alert, opts.getButtonText (1));
             addButton (alert, opts.getButtonText (2));
 
-            [iOSGlobals::currentlyFocusedPeer->controller presentViewController: alert
-                                                                       animated: YES
-                                                                     completion: nil];
+            [currentlyFocusedPeer->controller presentViewController: alert
+                                                           animated: YES
+                                                         completion: nil];
         }
         else
         {

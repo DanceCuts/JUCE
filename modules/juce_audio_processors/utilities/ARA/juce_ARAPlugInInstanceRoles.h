@@ -59,7 +59,10 @@ public:
                                 int maximumSamplesPerBlock,
                                 int numChannels,
                                 AudioProcessor::ProcessingPrecision precision,
-                                AlwaysNonRealtime alwaysNonRealtime = AlwaysNonRealtime::no);
+                                AlwaysNonRealtime alwaysNonRealtime = AlwaysNonRealtime::no)
+    {
+        ignoreUnused (sampleRate, maximumSamplesPerBlock, numChannels, precision, alwaysNonRealtime);
+    }
 
     /** Frees render resources allocated in prepareToPlay(). */
     virtual void releaseResources() {}
@@ -125,7 +128,11 @@ public:
 
     bool processBlock (AudioBuffer<float>& buffer,
                        AudioProcessor::Realtime realtime,
-                       const AudioPlayHead::PositionInfo& positionInfo) noexcept override;
+                       const AudioPlayHead::PositionInfo& positionInfo) noexcept override
+    {
+        ignoreUnused (buffer, realtime, positionInfo);
+        return false;
+    }
 
     using ARARenderer::processBlock;
 
@@ -184,7 +191,11 @@ public:
     // isNonRealtime of the process context - typically preview is limited to realtime.
     bool processBlock (AudioBuffer<float>& buffer,
                        AudioProcessor::Realtime isNonRealtime,
-                       const AudioPlayHead::PositionInfo& positionInfo) noexcept override;
+                       const AudioPlayHead::PositionInfo& positionInfo) noexcept override
+    {
+        ignoreUnused (buffer, isNonRealtime, positionInfo);
+        return true;
+    }
 
     using ARARenderer::processBlock;
 
@@ -207,7 +218,7 @@ public:
 
     // Shadowing templated getters to default to JUCE versions of the returned classes
     template <typename RegionSequence_t = ARARegionSequence>
-    const std::vector<RegionSequence_t*>& getHiddenRegionSequences() const noexcept
+    std::vector<RegionSequence_t*> const& getHiddenRegionSequences() const noexcept
     {
         return ARA::PlugIn::EditorView::getHiddenRegionSequences<RegionSequence_t>();
     }
@@ -216,7 +227,7 @@ public:
     void doNotifySelection (const ARA::PlugIn::ViewSelection* currentSelection) noexcept override;
 
     // Base class implementation must be called if overridden
-    void doNotifyHideRegionSequences (const std::vector<ARA::PlugIn::RegionSequence*>& regionSequences) noexcept override;
+    void doNotifyHideRegionSequences (std::vector<ARA::PlugIn::RegionSequence*> const& regionSequences) noexcept override;
 
     /** A base class for listeners that want to know about changes to an ARAEditorView object.
 
@@ -228,15 +239,25 @@ public:
         /** Destructor. */
         virtual ~Listener() = default;
 
+       ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_BEGIN
+
         /** Called when the editor view's selection changes.
             @param viewSelection The current selection state
         */
-        virtual void onNewSelection (const ARAViewSelection& viewSelection);
+        virtual void onNewSelection (const ARAViewSelection& viewSelection)
+        {
+            ignoreUnused (viewSelection);
+        }
 
         /** Called when region sequences are flagged as hidden in the host UI.
             @param regionSequences A vector containing all hidden region sequences.
         */
-        virtual void onHideRegionSequences (const std::vector<ARARegionSequence*>& regionSequences);
+        virtual void onHideRegionSequences (std::vector<ARARegionSequence*> const& regionSequences)
+        {
+            ignoreUnused (regionSequences);
+        }
+
+       ARA_DISABLE_UNREFERENCED_PARAMETER_WARNING_END
     };
 
     /** \copydoc ARAListenableModelClass::addListener */

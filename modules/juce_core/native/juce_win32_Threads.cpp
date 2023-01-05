@@ -134,7 +134,7 @@ void Thread::killThread()
     }
 }
 
-void JUCE_CALLTYPE Thread::setCurrentThreadName ([[maybe_unused]] const String& name)
+void JUCE_CALLTYPE Thread::setCurrentThreadName (const String& name)
 {
    #if JUCE_DEBUG && JUCE_MSVC
     struct
@@ -159,6 +159,8 @@ void JUCE_CALLTYPE Thread::setCurrentThreadName ([[maybe_unused]] const String& 
     {
         OutputDebugStringA ("** Warning - Encountered noncontinuable exception **\n");
     }
+   #else
+    ignoreUnused (name);
    #endif
 }
 

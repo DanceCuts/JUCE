@@ -104,9 +104,12 @@ private:
 
         controller.get().excludedActivityTypes = nil;
 
-        controller.get().completionWithItemsHandler = ^([[maybe_unused]] UIActivityType type, BOOL completed,
-                                                        [[maybe_unused]] NSArray* returnedItems, NSError* error)
+        controller.get().completionWithItemsHandler = ^ (UIActivityType type, BOOL completed,
+                                                         NSArray* returnedItems, NSError* error)
         {
+            ignoreUnused (type);
+            ignoreUnused (returnedItems);
+
             succeeded = completed;
 
             if (error != nil)

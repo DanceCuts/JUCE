@@ -476,11 +476,6 @@ CodeEditorComponent::CodeEditorComponent (CodeDocument& doc, CodeTokeniser* cons
 
 CodeEditorComponent::~CodeEditorComponent()
 {
-    giveAwayKeyboardFocus();
-
-    if (auto* peer = getPeer())
-        peer->refreshTextInputTarget();
-
     document.removeListener (pimpl.get());
 }
 
@@ -675,9 +670,10 @@ void CodeEditorComponent::codeDocumentChanged (const int startIndex, const int e
     updateScrollBars();
 }
 
-void CodeEditorComponent::retokenise (int startIndex, [[maybe_unused]] int endIndex)
+void CodeEditorComponent::retokenise (int startIndex, int endIndex)
 {
     const CodeDocument::Position affectedTextStart (document, startIndex);
+    juce::ignoreUnused (endIndex); // Leave room for more efficient impl in future.
 
     clearCachedIterators (affectedTextStart.getLineNumber());
 

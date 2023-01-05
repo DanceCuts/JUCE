@@ -103,6 +103,26 @@ static const uint8 javaJuceOpenGLView[] =
 };
 
 //==============================================================================
+struct AndroidGLCallbacks
+{
+    static void attachedToWindow   (JNIEnv*, jobject, jlong);
+    static void detachedFromWindow (JNIEnv*, jobject, jlong);
+    static void dispatchDraw       (JNIEnv*, jobject, jlong, jobject);
+};
+
+//==============================================================================
+#define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK) \
+ METHOD (constructor, "<init>",    "(Landroid/content/Context;J)V") \
+ METHOD (getParent,   "getParent", "()Landroid/view/ViewParent;") \
+ METHOD (getHolder,   "getHolder", "()Landroid/view/SurfaceHolder;") \
+ METHOD (layout,      "layout",    "(IIII)V" ) \
+ CALLBACK (AndroidGLCallbacks::attachedToWindow,   "onAttchedWindowNative",      "(J)V") \
+ CALLBACK (AndroidGLCallbacks::detachedFromWindow, "onDetachedFromWindowNative", "(J)V") \
+ CALLBACK (AndroidGLCallbacks::dispatchDraw,       "onDrawNative",               "(JLandroid/graphics/Canvas;)V")
+
+DECLARE_JNI_CLASS_WITH_BYTECODE (JuceOpenGLViewSurface, "com/rmsl/juce/JuceOpenGLView", 16, javaJuceOpenGLView, sizeof(javaJuceOpenGLView))
+#undef JNI_CLASS_MEMBERS
+
 //==============================================================================
 class OpenGLContext::NativeContext : private SurfaceHolderCallback
 {
@@ -226,11 +246,9 @@ public:
 
     //==============================================================================
     // Android Surface Callbacks:
-    void surfaceChanged ([[maybe_unused]] LocalRef<jobject> holder,
-                         [[maybe_unused]] int format,
-                         [[maybe_unused]] int width,
-                         [[maybe_unused]] int height) override
+    void surfaceChanged (LocalRef<jobject> holder, int format, int width, int height) override
     {
+        ignoreUnused (holder, format, width, height);
     }
 
     void surfaceCreated (LocalRef<jobject>) override;
@@ -246,46 +264,40 @@ public:
     Component& component;
 
 private:
-    #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD, CALLBACK) \
-     METHOD (constructor, "<init>",    "(Landroid/content/Context;J)V") \
-     METHOD (getParent,   "getParent", "()Landroid/view/ViewParent;") \
-     METHOD (getHolder,   "getHolder", "()Landroid/view/SurfaceHolder;") \
-     METHOD (layout,      "layout",    "(IIII)V" ) \
-     CALLBACK (generatedCallback<&NativeContext::attachedToWindow>,   "onAttchedWindowNative",      "(J)V") \
-     CALLBACK (generatedCallback<&NativeContext::detachedFromWindow>, "onDetachedFromWindowNative", "(J)V") \
-     CALLBACK (generatedCallback<&NativeContext::dispatchDraw>,       "onDrawNative",               "(JLandroid/graphics/Canvas;)V")
-
-     DECLARE_JNI_CLASS_WITH_BYTECODE (JuceOpenGLViewSurface, "com/rmsl/juce/JuceOpenGLView", 16, javaJuceOpenGLView)
-    #undef JNI_CLASS_MEMBERS
-
     //==============================================================================
-    static void attachedToWindow (JNIEnv* env, NativeContext& t)
+    friend struct AndroidGLCallbacks;
+
+    void attachedToWindow()
     {
-        LocalRef<jobject> holder (env->CallObjectMethod (t.surfaceView.get(), JuceOpenGLViewSurface.getHolder));
+        auto* env = getEnv();
 
-        if (t.surfaceHolderCallback == nullptr)
-            t.surfaceHolderCallback = GlobalRef (CreateJavaInterface (&t, "android/view/SurfaceHolder$Callback"));
+        LocalRef<jobject> holder (env->CallObjectMethod (surfaceView.get(), JuceOpenGLViewSurface.getHolder));
 
-        env->CallVoidMethod (holder, AndroidSurfaceHolder.addCallback, t.surfaceHolderCallback.get());
+        if (surfaceHolderCallback == nullptr)
+            surfaceHolderCallback = GlobalRef (CreateJavaInterface (this, "android/view/SurfaceHolder$Callback"));
+
+        env->CallVoidMethod (holder, AndroidSurfaceHolder.addCallback, surfaceHolderCallback.get());
     }
 
-    static void detachedFromWindow (JNIEnv* env, NativeContext& t)
+    void detachedFromWindow()
     {
-        if (t.surfaceHolderCallback != nullptr)
+        if (surfaceHolderCallback != nullptr)
         {
-            LocalRef<jobject> holder (env->CallObjectMethod (t.surfaceView.get(), JuceOpenGLViewSurface.getHolder));
+            auto* env = getEnv();
 
-            env->CallVoidMethod (holder.get(), AndroidSurfaceHolder.removeCallback, t.surfaceHolderCallback.get());
-            t.surfaceHolderCallback.clear();
+            LocalRef<jobject> holder (env->CallObjectMethod (surfaceView.get(), JuceOpenGLViewSurface.getHolder));
+
+            env->CallVoidMethod (holder.get(), AndroidSurfaceHolder.removeCallback, surfaceHolderCallback.get());
+            surfaceHolderCallback.clear();
         }
     }
 
-    static void dispatchDraw (JNIEnv*, NativeContext& t, jobject /*canvas*/)
+    void dispatchDraw (jobject /*canvas*/)
     {
-        const std::lock_guard lock { t.nativeHandleMutex };
+        const std::lock_guard lock { nativeHandleMutex };
 
-        if (t.juceContext != nullptr)
-            t.juceContext->triggerRepaint();
+        if (juceContext != nullptr)
+            juceContext->triggerRepaint();
     }
 
     bool tryChooseConfig (const std::vector<EGLint>& optionalAttribs)
@@ -399,6 +411,25 @@ private:
 
 EGLDisplay OpenGLContext::NativeContext::display = EGL_NO_DISPLAY;
 EGLDisplay OpenGLContext::NativeContext::config;
+
+//==============================================================================
+void AndroidGLCallbacks::attachedToWindow (JNIEnv*, jobject /*this*/, jlong host)
+{
+    if (auto* nativeContext = reinterpret_cast<OpenGLContext::NativeContext*> (host))
+        nativeContext->attachedToWindow();
+}
+
+void AndroidGLCallbacks::detachedFromWindow (JNIEnv*, jobject /*this*/, jlong host)
+{
+    if (auto* nativeContext = reinterpret_cast<OpenGLContext::NativeContext*> (host))
+        nativeContext->detachedFromWindow();
+}
+
+void AndroidGLCallbacks::dispatchDraw (JNIEnv*, jobject /*this*/, jlong host, jobject canvas)
+{
+    if (auto* nativeContext = reinterpret_cast<OpenGLContext::NativeContext*> (host))
+        nativeContext->dispatchDraw (canvas);
+}
 
 //==============================================================================
 bool OpenGLHelpers::isContextActive()

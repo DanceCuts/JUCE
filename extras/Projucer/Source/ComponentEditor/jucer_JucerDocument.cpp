@@ -573,7 +573,7 @@ bool JucerDocument::reloadFromDocument()
     if (currentXML != nullptr && currentXML->isEquivalentTo (newXML.get(), true))
         return true;
 
-    currentXML = std::move (newXML);
+    currentXML.reset (newXML.release());
     stopTimer();
 
     resources.loadFromCpp (getCppFile(), cppContent);

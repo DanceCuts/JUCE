@@ -56,7 +56,7 @@ void PluginHostType::switchToHostApplication() const
    #endif
 }
 
-bool PluginHostType::isInAAXAudioSuite ([[maybe_unused]] AudioProcessor& processor)
+bool PluginHostType::isInAAXAudioSuite (AudioProcessor& processor)
 {
    #if JucePlugin_Build_AAX
     if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_AAX
@@ -66,11 +66,14 @@ bool PluginHostType::isInAAXAudioSuite ([[maybe_unused]] AudioProcessor& process
     }
    #endif
 
+    ignoreUnused (processor);
     return false;
 }
 
-Image PluginHostType::getHostIcon ([[maybe_unused]] int size) const
+Image PluginHostType::getHostIcon (int size) const
 {
+    ignoreUnused (size);
+
    #if JucePlugin_Enable_IAA && JucePlugin_Build_Standalone && JUCE_IOS && (! JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP)
     if (isInterAppAudioConnected())
         return juce_getIAAHostIcon (size);
@@ -98,12 +101,10 @@ const char* PluginHostType::getHostDescription() const noexcept
         case AdobeAudition:            return "Adobe Audition";
         case AdobePremierePro:         return "Adobe Premiere";
         case AppleGarageBand:          return "Apple GarageBand";
-        case AppleInfoHelper:          return "com.apple.audio.InfoHelper";
         case AppleLogic:               return "Apple Logic";
         case AppleMainStage:           return "Apple MainStage";
         case Ardour:                   return "Ardour";
         case AULab:                    return "AU Lab";
-        case AUVal:                    return "auval";
         case AvidProTools:             return "ProTools";
         case BitwigStudio:             return "Bitwig Studio";
         case CakewalkSonar8:           return "Cakewalk Sonar 8";
@@ -214,8 +215,6 @@ PluginHostType::HostType PluginHostType::getHostType()
     if (hostFilename.containsIgnoreCase   ("pluginval"))                return pluginval;
     if (hostFilename.containsIgnoreCase   ("AudioPluginHost"))          return JUCEPluginHost;
     if (hostFilename.containsIgnoreCase   ("Vienna Ensemble Pro"))      return ViennaEnsemblePro;
-    if (hostFilename.containsIgnoreCase   ("auvaltool"))                return AUVal;
-    if (hostFilename.containsIgnoreCase   ("com.apple.audio.infohelper")) return AppleInfoHelper;
 
     if (hostIdReportedByWrapper == "com.apple.logic.pro")               return AppleLogic;
     if (hostIdReportedByWrapper == "com.apple.garageband")              return AppleGarageBand;

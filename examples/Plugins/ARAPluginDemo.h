@@ -117,18 +117,6 @@ private:
     SpinLock processingFlag;
 };
 
-static void crossfade (const float* sourceA,
-                       const float* sourceB,
-                       float aProportionAtStart,
-                       float aProportionAtFinish,
-                       float* destinationBuffer,
-                       int numSamples)
-{
-    AudioBuffer<float> destination { &destinationBuffer, 1, numSamples };
-    destination.copyFromWithRamp (0, 0, sourceA, numSamples, aProportionAtStart, aProportionAtFinish);
-    destination.addFromWithRamp (0, 0, sourceB, numSamples, 1.0f - aProportionAtStart, 1.0f - aProportionAtFinish);
-}
-
 class Looper
 {
 public:
@@ -150,60 +138,28 @@ public:
         }
 
         const auto numChannelsToCopy = std::min (inputBuffer->getNumChannels(), buffer.getNumChannels());
-        const auto actualCrossfadeLengthSamples = std::min (loopRange.getLength() / 2, (int64) desiredCrossfadeLengthSamples);
 
         for (auto samplesCopied = 0; samplesCopied < buffer.getNumSamples();)
         {
-            const auto [needsCrossfade, samplePosOfNextCrossfadeTransition] = [&]() -> std::pair<bool, int64>
-            {
-                if (const auto endOfFadeIn = loopRange.getStart() + actualCrossfadeLengthSamples; pos < endOfFadeIn)
-                    return { true, endOfFadeIn };
-
-                return { false, loopRange.getEnd() - actualCrossfadeLengthSamples };
-            }();
-
-            const auto samplesToNextCrossfadeTransition = samplePosOfNextCrossfadeTransition - pos;
-            const auto numSamplesToCopy = std::min (buffer.getNumSamples() - samplesCopied,
-                                                    (int) samplesToNextCrossfadeTransition);
-
-            const auto getFadeInGainAtPos = [this, actualCrossfadeLengthSamples] (auto p)
-            {
-                return jmap ((float) p, (float) loopRange.getStart(), (float) loopRange.getStart() + (float) actualCrossfadeLengthSamples - 1.0f, 0.0f, 1.0f);
-            };
+            const auto numSamplesToCopy =
+                std::min (buffer.getNumSamples() - samplesCopied, (int) (loopRange.getEnd() - pos));
 
             for (int i = 0; i < numChannelsToCopy; ++i)
             {
-                if (needsCrossfade)
-                {
-                    const auto overlapStart = loopRange.getEnd() - actualCrossfadeLengthSamples
-                                              + (pos - loopRange.getStart());
-
-                    crossfade (inputBuffer->getReadPointer (i, (int) pos),
-                               inputBuffer->getReadPointer (i, (int) overlapStart),
-                               getFadeInGainAtPos (pos),
-                               getFadeInGainAtPos (pos + numSamplesToCopy),
-                               buffer.getWritePointer (i, samplesCopied),
-                               numSamplesToCopy);
-                }
-                else
-                {
-                    buffer.copyFrom (i, samplesCopied, *inputBuffer, i, (int) pos, numSamplesToCopy);
-                }
+                buffer.copyFrom (i, samplesCopied, *inputBuffer, i, (int) pos, numSamplesToCopy);
             }
 
             samplesCopied += numSamplesToCopy;
             pos += numSamplesToCopy;
 
-            jassert (pos <= loopRange.getEnd() - actualCrossfadeLengthSamples);
+            jassert (pos <= loopRange.getEnd());
 
-            if (pos == loopRange.getEnd() - actualCrossfadeLengthSamples)
+            if (pos == loopRange.getEnd())
                 pos = loopRange.getStart();
         }
     }
 
 private:
-    static constexpr int desiredCrossfadeLengthSamples = 50;
-
     const AudioBuffer<float>* inputBuffer;
     Range<int64> loopRange;
     int64 pos;
@@ -554,21 +510,8 @@ public:
             if (! locked)
                 return true;
 
-            const auto fadeOutIfNecessary = [this, &buffer]
-            {
-                if (std::exchange (wasPreviewing, false))
-                {
-                    previewLooper.writeInto (buffer);
-                    const auto fadeOutStart = std::max (0, buffer.getNumSamples() - 50);
-                    buffer.applyGainRamp (fadeOutStart, buffer.getNumSamples() - fadeOutStart, 1.0f, 0.0f);
-                }
-            };
-
             if (positionInfo.getIsPlaying())
-            {
-                fadeOutIfNecessary();
                 return true;
-            }
 
             if (const auto previewedRegion = previewState->previewedRegion.load())
             {
@@ -622,18 +565,8 @@ public:
                     else
                     {
                         previewLooper.writeInto (buffer);
-
-                        if (! std::exchange (wasPreviewing, true))
-                        {
-                            const auto fadeInLength = std::min (50, buffer.getNumSamples());
-                            buffer.applyGainRamp (0, fadeInLength, 0.0f, 1.0f);
-                        }
                     }
                 }
-            }
-            else
-            {
-                fadeOutIfNecessary();
             }
 
             return true;
@@ -666,7 +599,6 @@ private:
     double lastPreviewTime = 0.0;
     ARAPlaybackRegion* lastPlaybackRegion = nullptr;
     bool lastPreviewDimmed = false;
-    bool wasPreviewing = false;
     std::unique_ptr<AudioBuffer<float>> previewBuffer;
     Looper previewLooper;
 
@@ -1692,7 +1624,7 @@ private:
                     const auto end = chordsReader.end();
                     auto it = begin;
 
-                    while (it != end && it->position <= quarterPosition)
+                    while (it->position <= quarterPosition && it != end)
                         ++it;
 
                     if (it != begin)
@@ -1998,10 +1930,9 @@ public:
             selectMusicalContext (musicalContext);
     }
 
-    void willDestroyMusicalContext (ARAMusicalContext* musicalContext) override
+    void willDestroyMusicalContext (ARAMusicalContext*) override
     {
-        if (selectedMusicalContext == musicalContext)
-            selectMusicalContext (nullptr);
+        selectMusicalContext (nullptr);
     }
 
     void didReorderRegionSequencesInDocument (ARADocument*) override
@@ -2048,6 +1979,9 @@ public:
         if (auto* newSelectedMusicalContext = getNewSelectedMusicalContext())
             if (newSelectedMusicalContext != selectedMusicalContext)
                 selectMusicalContext (newSelectedMusicalContext);
+
+        // If no context is used yet and the selection does not yield a new one, the DocumentView
+        // uses the first musical context in the document.
 
         if (const auto timeRange = viewSelection.getTimeRange())
             overlay.setSelectedTimeRange (*timeRange);

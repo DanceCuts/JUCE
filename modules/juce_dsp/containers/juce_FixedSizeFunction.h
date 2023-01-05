@@ -70,9 +70,10 @@ namespace detail
     template <typename Fn>
     void clear (void* s)
     {
-        // I know this looks insane, for some reason MSVC 14 sometimes thinks fn is unreferenced
-        [[maybe_unused]] auto& fn = *reinterpret_cast<Fn*> (s);
+        auto& fn = *reinterpret_cast<Fn*> (s);
         fn.~Fn();
+        // I know this looks insane, for some reason MSVC 14 sometimes thinks fn is unreferenced
+        ignoreUnused (fn);
     }
 
     template <typename Fn, typename Ret, typename... Args>

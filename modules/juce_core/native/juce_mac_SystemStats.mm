@@ -153,10 +153,6 @@ String SystemStats::getOperatingSystemName()
 
 String SystemStats::getDeviceDescription()
 {
-    if (auto* userInfo = [[NSProcessInfo processInfo] environment])
-        if (auto* simDeviceName = [userInfo objectForKey: @"SIMULATOR_MODEL_IDENTIFIER"])
-            return nsStringToJuce (simDeviceName);
-
    #if JUCE_IOS
     const char* name = "hw.machine";
    #else
@@ -170,7 +166,22 @@ String SystemStats::getDeviceDescription()
         HeapBlock<char> model (size);
 
         if (sysctlbyname (name, model, &size, nullptr, 0) >= 0)
-            return String (model.get());
+        {
+            String description (model.get());
+
+           #if JUCE_IOS
+            if (description == "x86_64") // running in the simulator
+            {
+                if (auto* userInfo = [[NSProcessInfo processInfo] environment])
+                {
+                    if (auto* simDeviceName = [userInfo objectForKey: @"SIMULATOR_DEVICE_NAME"])
+                        return nsStringToJuce (simDeviceName);
+                }
+            }
+          #endif
+
+            return description;
+        }
     }
 
     return {};

@@ -262,7 +262,7 @@ namespace DragAndDropHelpers
 
         JobStatus runJob() override
         {
-            [[maybe_unused]] const auto result = OleInitialize (nullptr);
+            ignoreUnused (OleInitialize (nullptr));
 
             auto* source = new JuceDropSource();
             auto* data = new JuceDataObject (&format, &medium);

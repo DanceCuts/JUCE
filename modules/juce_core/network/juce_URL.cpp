@@ -630,7 +630,8 @@ public:
             }
             else
             {
-                [[maybe_unused]] auto desc = [error localizedDescription];
+                auto desc = [error localizedDescription];
+                ignoreUnused (desc);
                 jassertfalse;
             }
         }
@@ -663,7 +664,8 @@ private:
                 return urlToUse.getLocalFile();
             }
 
-            [[maybe_unused]] auto desc = [error localizedDescription];
+            auto desc = [error localizedDescription];
+            ignoreUnused (desc);
             jassertfalse;
         }
 

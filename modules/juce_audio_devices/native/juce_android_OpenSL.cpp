@@ -601,7 +601,7 @@ public:
             }
         }
 
-        void process (const float* const* inputChannelData, float* const* outputChannelData)
+        void process (const float** inputChannelData, float** outputChannelData)
         {
             if (auto* cb = callback.exchange (nullptr))
             {
@@ -750,8 +750,8 @@ public:
                     T* recorderBuffer = (inputChannels  > 0 ? recorder->getNextBuffer() : nullptr);
                     T* playerBuffer   = (outputChannels > 0 ? player->getNextBuffer()   : nullptr);
 
-                    const float* const* inputChannelData = nullptr;
-                    float* const* outputChannelData = nullptr;
+                    const float** inputChannelData = nullptr;
+                    float** outputChannelData = nullptr;
 
                     if (recorderBuffer != nullptr)
                     {
@@ -1273,22 +1273,20 @@ private:
 };
 
 //==============================================================================
-RealtimeThreadFactory getAndroidRealtimeThreadFactory()
+pthread_t juce_createRealtimeAudioThread (void* (*entry) (void*), void* userPtr);
+pthread_t juce_createRealtimeAudioThread (void* (*entry) (void*), void* userPtr)
 {
-    return [] (void* (*entry) (void*), void* userPtr) -> pthread_t
-    {
-        auto thread = std::make_unique<SLRealtimeThread>();
+    auto thread = std::make_unique<SLRealtimeThread>();
 
-        if (! thread->isOk())
-            return {};
+    if (! thread->isOk())
+        return {};
 
-        auto threadID = thread->startThread (entry, userPtr);
+    auto threadID = thread->startThread (entry, userPtr);
 
-        // the thread will de-allocate itself
-        thread.release();
+    // the thread will de-allocate itself
+    thread.release();
 
-        return threadID;
-    };
+    return threadID;
 }
 
 } // namespace juce

@@ -57,18 +57,18 @@ public:
         return lastPeer;
     }
 
-    static Component* findComponentAt (Point<float> screenPos, ComponentPeer* peer)
+    Component* findComponentAt (Point<float> screenPos)
     {
-        if (! ComponentPeer::isValidPeer (peer))
-            return nullptr;
+        if (auto* peer = getPeer())
+        {
+            auto relativePos = ScalingHelpers::unscaledScreenPosToScaled (peer->getComponent(),
+                                                                          peer->globalToLocal (screenPos));
+            auto& comp = peer->getComponent();
 
-        auto relativePos = ScalingHelpers::unscaledScreenPosToScaled (peer->getComponent(),
-                                                                      peer->globalToLocal (screenPos));
-        auto& comp = peer->getComponent();
-
-        // (the contains() call is needed to test for overlapping desktop windows)
-        if (comp.contains (relativePos))
-            return comp.getComponentAt (relativePos);
+            // (the contains() call is needed to test for overlapping desktop windows)
+            if (comp.contains (relativePos))
+                return comp.getComponentAt (relativePos);
+        }
 
         return nullptr;
     }
@@ -244,12 +244,11 @@ public:
 
     void setPeer (ComponentPeer& newPeer, const PointerState& pointerState, Time time)
     {
-        if (&newPeer != lastPeer && (   findComponentAt (pointerState.position, &newPeer) != nullptr
-                                     || findComponentAt (pointerState.position, lastPeer) == nullptr))
+        if (&newPeer != lastPeer)
         {
             setComponentUnderMouse (nullptr, pointerState, time);
             lastPeer = &newPeer;
-            setComponentUnderMouse (findComponentAt (pointerState.position, getPeer()), pointerState, time);
+            setComponentUnderMouse (findComponentAt (pointerState.position), pointerState, time);
         }
     }
 
@@ -258,7 +257,7 @@ public:
         const auto& newScreenPos = newPointerState.position;
 
         if (! isDragging())
-            setComponentUnderMouse (findComponentAt (newScreenPos, getPeer()), newPointerState, time);
+            setComponentUnderMouse (findComponentAt (newScreenPos), newPointerState, time);
 
         if ((newPointerState != lastPointerState) || forceUpdate)
         {

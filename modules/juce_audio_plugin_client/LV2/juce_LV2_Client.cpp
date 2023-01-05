@@ -124,14 +124,7 @@ public:
     */
     static String getIri (const AudioProcessorParameter& param)
     {
-        const auto urlSanitised = URL::addEscapeChars (LegacyAudioParameter::getParamID (&param, false), true);
-        const auto ttlSanitised = lv2_shared::sanitiseStringAsTtlName (urlSanitised);
-
-        // If this is hit, the parameter ID could not be represented directly in the plugin ttl.
-        // We'll replace offending characters with '_'.
-        jassert (urlSanitised == ttlSanitised);
-
-        return ttlSanitised;
+        return URL::addEscapeChars (LegacyAudioParameter::getParamID (&param, false), true);
     }
 
     void setValueFromHost (LV2_URID urid, float value) noexcept
@@ -223,11 +216,6 @@ private:
             const auto urid = mapFeature.map (mapFeature.handle, uri.toRawUTF8());
             result.push_back (urid);
         }
-
-        // If this is hit, some parameters have duplicate IDs.
-        // This may be because the IDs resolve to the same string when removing characters that
-        // are invalid in a TTL name.
-        jassert (std::set<LV2_URID> (result.begin(), result.end()).size() == result.size());
 
         return result;
     }();
@@ -517,12 +505,8 @@ public:
 
     void run (uint32_t numSteps)
     {
-        // If this is hit, the host is trying to process more samples than it told us to prepare
-        jassert (static_cast<int> (numSteps) <= processor->getBlockSize());
-
         midi.clear();
         playHead.invalidate();
-        audio.setSize (audio.getNumChannels(), static_cast<int> (numSteps), true, false, true);
 
         ports.forEachInputEvent ([&] (const LV2_Atom_Event* event)
         {
@@ -552,7 +536,7 @@ public:
         processor->setNonRealtime (ports.isFreeWheeling());
 
         for (auto i = 0, end = processor->getTotalNumInputChannels(); i < end; ++i)
-            audio.copyFrom (i, 0, ports.getBufferForAudioInput (i), audio.getNumSamples());
+            audio.copyFrom (i, 0, ports.getBufferForAudioInput (i), (int) numSteps);
 
         jassert (countNaNs (audio) == 0);
 
@@ -721,7 +705,7 @@ public:
 
     static std::unique_ptr<AudioProcessor> createProcessorInstance()
     {
-        auto result = createPluginFilterOfType (AudioProcessor::wrapperType_LV2);
+        std::unique_ptr<AudioProcessor> result { createPluginFilterOfType (AudioProcessor::wrapperType_LV2) };
 
        #if defined (JucePlugin_PreferredChannelConfigurations)
         constexpr short channelConfigurations[][2] { JucePlugin_PreferredChannelConfigurations };
@@ -813,11 +797,7 @@ struct RecallFeature
     {
         const ScopedJuceInitialiser_GUI scope;
         const auto processor = LV2PluginInstance::createProcessorInstance();
-
-        const String pathString { CharPointer_UTF8 { libraryPath } };
-
-        const auto absolutePath = File::isAbsolutePath (pathString) ? File (pathString)
-                                                                    : File::getCurrentWorkingDirectory().getChildFile (pathString);
+        const File absolutePath { CharPointer_UTF8 { libraryPath } };
 
         const auto writers = { writeManifestTtl, writeDspTtl, writeUiTtl };
 
@@ -840,27 +820,14 @@ private:
         return JucePlugin_LV2URI + String (uriSeparator) + "preset" + String (index + 1);
     }
 
-    static FileOutputStream openStream (const File& libraryPath, StringRef name)
+    static std::ofstream openStream (const File& libraryPath, StringRef name)
     {
-        return FileOutputStream { libraryPath.getSiblingFile (name + ".ttl") };
-    }
-
-    static Result prepareStream (FileOutputStream& stream)
-    {
-        if (const auto result = stream.getStatus(); ! result)
-            return result;
-
-        stream.setPosition (0);
-        stream.truncate();
-        return Result::ok();
+        return std::ofstream { libraryPath.getSiblingFile (name + ".ttl").getFullPathName().toRawUTF8() };
     }
 
     static Result writeManifestTtl (AudioProcessor& proc, const File& libraryPath)
     {
         auto os = openStream (libraryPath, "manifest");
-
-        if (const auto result = prepareStream (os); ! result)
-            return result;
 
         os << "@prefix lv2:   <http://lv2plug.in/ns/lv2core#> .\n"
               "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n"
@@ -880,7 +847,7 @@ private:
             #define JUCE_LV2_UI_KIND "CocoaUI"
            #elif JUCE_WINDOWS
             #define JUCE_LV2_UI_KIND "WindowsUI"
-           #elif JUCE_LINUX || JUCE_BSD
+           #elif JUCE_LINUX
             #define JUCE_LV2_UI_KIND "X11UI"
            #else
             #error "LV2 UI is unsupported on this platform"
@@ -992,9 +959,6 @@ private:
     static Result writeDspTtl (AudioProcessor& proc, const File& libraryPath)
     {
         auto os = openStream (libraryPath, "dsp");
-
-        if (const auto result = prepareStream (os); ! result)
-            return result;
 
         os << "@prefix atom:  <http://lv2plug.in/ns/ext/atom#> .\n"
               "@prefix bufs:  <http://lv2plug.in/ns/ext/buf-size#> .\n"
@@ -1333,9 +1297,6 @@ private:
 
         auto os = openStream (libraryPath, "ui");
 
-        if (const auto result = prepareStream (os); ! result)
-            return result;
-
         const auto editorInstance = rawToUniquePtr (proc.createEditor());
         const auto resizeFeatureString = editorInstance->isResizable() ? "ui:resize" : "ui:noUserResize";
 
@@ -1379,6 +1340,8 @@ private:
 //==============================================================================
 LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor (uint32_t index)
 {
+    PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_LV2;
+
     if (index != 0)
         return nullptr;
 

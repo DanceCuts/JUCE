@@ -68,7 +68,8 @@ public:
 
             ScopedUnlock ul (lock);
             unsigned char x = 0xff;
-            [[maybe_unused]] auto numBytes = write (getWriteHandle(), &x, 1);
+            auto numBytes = write (getWriteHandle(), &x, 1);
+            ignoreUnused (numBytes);
         }
     }
 
@@ -96,7 +97,8 @@ private:
 
             ScopedUnlock ul (lock);
             unsigned char x;
-            [[maybe_unused]] auto numBytes = read (fd, &x, 1);
+            auto numBytes = read (fd, &x, 1);
+            ignoreUnused (numBytes);
         }
 
         return queue.removeAndReturn (0);

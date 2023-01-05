@@ -524,7 +524,7 @@ public:
 
          @see addBus
     */
-    virtual bool canAddBus (bool isInput) const;
+    virtual bool canAddBus (bool isInput) const                     { ignoreUnused (isInput); return false; }
 
     /**  Callback to query if the last bus can currently be removed.
 
@@ -537,7 +537,7 @@ public:
 
          The default implementation will always return false.
     */
-    virtual bool canRemoveBus (bool isInput) const;
+    virtual bool canRemoveBus (bool isInput) const                  { ignoreUnused (isInput); return false; }
 
     /** Dynamically request an additional bus.
 

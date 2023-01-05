@@ -25,7 +25,7 @@ using namespace dsp;
 struct DSPDemoParameterBase    : public ChangeBroadcaster
 {
     DSPDemoParameterBase (const String& labelName) : name (labelName) {}
-    virtual ~DSPDemoParameterBase() = default;
+    virtual ~DSPDemoParameterBase() {}
 
     virtual Component* getComponent() = 0;
 
@@ -142,7 +142,7 @@ public:
         loadURL (u);
     }
 
-    URL getCurrentURL() const   { return currentURL; }
+    URL getCurrentURL()    { return currentURL; }
 
     void setTransportSource (AudioTransportSource* newSource)
     {
@@ -189,7 +189,21 @@ private:
 
         currentURL = u;
 
-        thumbnail.setSource (makeInputSource (u).release());
+        InputSource* inputSource = nullptr;
+
+       #if ! JUCE_IOS
+        if (u.isLocalFile())
+        {
+            inputSource = new FileInputSource (u.getLocalFile());
+        }
+        else
+       #endif
+        {
+            if (inputSource == nullptr)
+                inputSource = new URLInputSource (u);
+        }
+
+        thumbnail.setSource (inputSource);
 
         if (notify)
             sendChangeMessage();
@@ -393,27 +407,33 @@ public:
         transportSource.reset();
         readerSource.reset();
 
-        auto source = makeInputSource (fileToPlay);
+        AudioFormatReader* newReader = nullptr;
 
-        if (source == nullptr)
-            return false;
+       #if ! JUCE_IOS
+        if (fileToPlay.isLocalFile())
+        {
+            newReader = formatManager.createReaderFor (fileToPlay.getLocalFile());
+        }
+        else
+       #endif
+        {
+            if (newReader == nullptr)
+                newReader = formatManager.createReaderFor (fileToPlay.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)));
+        }
 
-        auto stream = rawToUniquePtr (source->createInputStream());
+        reader.reset (newReader);
 
-        if (stream == nullptr)
-            return false;
+        if (reader.get() != nullptr)
+        {
+            readerSource.reset (new AudioFormatReaderSource (reader.get(), false));
+            readerSource->setLooping (loopState.getValue());
 
-        reader = rawToUniquePtr (formatManager.createReaderFor (std::move (stream)));
+            init();
 
-        if (reader == nullptr)
-            return false;
+            return true;
+        }
 
-        readerSource.reset (new AudioFormatReaderSource (reader.get(), false));
-        readerSource->setLooping (loopState.getValue());
-
-        init();
-
-        return true;
+        return false;
     }
 
     void togglePlay()
@@ -593,7 +613,7 @@ private:
                                       {
                                           if (fc.getURLResults().size() > 0)
                                           {
-                                              const auto u = fc.getURLResult();
+                                              auto u = fc.getURLResult();
 
                                               if (! audioFileReader.loadURL (u))
                                                   NativeMessageBox::showAsync (MessageBoxOptions()

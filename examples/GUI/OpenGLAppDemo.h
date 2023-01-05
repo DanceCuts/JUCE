@@ -205,7 +205,7 @@ public:
             attributes.reset();
             uniforms  .reset();
 
-            shader = std::move (newShader);
+            shader.reset (newShader.release());
             shader->use();
 
             shape     .reset (new Shape());

@@ -125,7 +125,7 @@ public:
                           Thread::Priority for values
         @returns true if the thread finished normally; false if the user pressed cancel
     */
-    bool runThread (Priority priority = Priority::normal);
+    bool runThread (Priority Priority = Priority::normal);
    #endif
 
     /** Starts the thread and returns.

@@ -135,7 +135,12 @@ public:
         void add (std::unique_ptr<Items>... items)
         {
             parameters.reserve (parameters.size() + sizeof... (items));
-            (parameters.push_back (makeParameterStorage (std::move (items))), ...);
+
+            // We can replace this with some nicer code once generic lambdas become available. A
+            // sequential context like an array initialiser is required to ensure we get the correct
+            // order from the parameter pack.
+            int unused[] { (parameters.emplace_back (MakeContents() (std::move (items))), 0)... };
+            ignoreUnused (unused);
         }
 
         template <typename It, typename = ValidIfIterator<It>>
@@ -145,7 +150,7 @@ public:
             std::transform (std::make_move_iterator (begin),
                             std::make_move_iterator (end),
                             std::back_inserter (parameters),
-                            [] (auto item) { return makeParameterStorage (std::move (item)); });
+                            MakeContents());
         }
 
         ParameterLayout (const ParameterLayout& other) = delete;
@@ -186,11 +191,14 @@ public:
             std::unique_ptr<Contents> contents;
         };
 
-        template <typename Contents>
-        static std::unique_ptr<ParameterStorage<Contents>> makeParameterStorage (std::unique_ptr<Contents> contents)
+        struct MakeContents final
         {
-            return std::make_unique<ParameterStorage<Contents>> (std::move (contents));
-        }
+            template <typename Item>
+            std::unique_ptr<ParameterStorageBase> operator() (std::unique_ptr<Item> item) const
+            {
+                return std::unique_ptr<ParameterStorageBase> (new ParameterStorage<Item> (std::move (item)));
+            }
+        };
 
         void add() {}
 

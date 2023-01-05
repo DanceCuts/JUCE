@@ -98,7 +98,10 @@ public:
                                                    float* const* outputChannelData,
                                                    int numOutputChannels,
                                                    int numSamples,
-                                                   const AudioIODeviceCallbackContext& context);
+                                                   const AudioIODeviceCallbackContext& context)
+    {
+        ignoreUnused (inputChannelData, numInputChannels, outputChannelData, numOutputChannels, numSamples, context);
+    }
 
     /** Called to indicate that the device is about to start calling back.
 
@@ -125,6 +128,7 @@ public:
     */
     virtual void audioDeviceError (const String& errorMessage);
 };
+
 
 //==============================================================================
 /**

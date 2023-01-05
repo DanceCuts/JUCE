@@ -46,6 +46,7 @@ namespace juce
 */
 template <class ObjectClass,
           class TypeOfCriticalSectionToUse = DummyCriticalSection>
+
 class OwnedArray
 {
 public:
@@ -530,7 +531,17 @@ public:
         @see add, sort, indexOfSorted
     */
     template <class ElementComparator>
-    int addSorted (ElementComparator& comparator, ObjectClass* newObject) noexcept;
+    int addSorted (ElementComparator& comparator, ObjectClass* newObject) noexcept
+    {
+        // If you pass in an object with a static compareElements() method, this
+        // avoids getting warning messages about the parameter being unused
+        ignoreUnused (comparator);
+
+        const ScopedLockType lock (getLock());
+        auto index = findInsertIndexInSortedArray (comparator, values.begin(), newObject, 0, values.size());
+        insert (index, newObject);
+        return index;
+    }
 
     /** Finds the index of an object in the array, assuming that the array is sorted.
 
@@ -545,7 +556,33 @@ public:
         @see addSorted, sort
     */
     template <typename ElementComparator>
-    int indexOfSorted (ElementComparator& comparator, const ObjectClass* objectToLookFor) const noexcept;
+    int indexOfSorted (ElementComparator& comparator, const ObjectClass* objectToLookFor) const noexcept
+    {
+        // If you pass in an object with a static compareElements() method, this
+        // avoids getting warning messages about the parameter being unused
+        ignoreUnused (comparator);
+
+        const ScopedLockType lock (getLock());
+        int s = 0, e = values.size();
+
+        while (s < e)
+        {
+            if (comparator.compareElements (objectToLookFor, values[s]) == 0)
+                return s;
+
+            auto halfway = (s + e) / 2;
+
+            if (halfway == s)
+                break;
+
+            if (comparator.compareElements (objectToLookFor, values[halfway]) >= 0)
+                s = halfway;
+            else
+                e = halfway;
+        }
+
+        return -1;
+    }
 
     //==============================================================================
     /** Removes an object from the array.
@@ -781,7 +818,18 @@ public:
         @see sortArray, indexOfSorted
     */
     template <class ElementComparator>
-    void sort (ElementComparator& comparator, bool retainOrderOfEquivalentItems = false) noexcept;
+    void sort (ElementComparator& comparator,
+               bool retainOrderOfEquivalentItems = false) noexcept
+    {
+        // If you pass in an object with a static compareElements() method, this
+        // avoids getting warning messages about the parameter being unused
+        ignoreUnused (comparator);
+
+        const ScopedLockType lock (getLock());
+
+        if (size() > 1)
+            sortArray (comparator, values.begin(), 0, size() - 1, retainOrderOfEquivalentItems);
+    }
 
     //==============================================================================
     /** Returns the CriticalSection that locks this array.
@@ -821,58 +869,5 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OwnedArray)
 };
-
-//==============================================================================
-template <class ObjectClass, class TypeOfCriticalSectionToUse>
-template <class ElementComparator>
-int OwnedArray<ObjectClass, TypeOfCriticalSectionToUse>::addSorted (
-    [[maybe_unused]] ElementComparator& comparator,
-    ObjectClass* newObject) noexcept
-{
-    const ScopedLockType lock (getLock());
-    auto index = findInsertIndexInSortedArray (comparator, values.begin(), newObject, 0, values.size());
-    insert (index, newObject);
-    return index;
-}
-
-template <class ObjectClass, class TypeOfCriticalSectionToUse>
-template <typename ElementComparator>
-int OwnedArray<ObjectClass, TypeOfCriticalSectionToUse>::indexOfSorted (
-    [[maybe_unused]] ElementComparator& comparator,
-    const ObjectClass* objectToLookFor) const noexcept
-{
-    const ScopedLockType lock (getLock());
-    int s = 0, e = values.size();
-
-    while (s < e)
-    {
-        if (comparator.compareElements (objectToLookFor, values[s]) == 0)
-            return s;
-
-        auto halfway = (s + e) / 2;
-
-        if (halfway == s)
-            break;
-
-        if (comparator.compareElements (objectToLookFor, values[halfway]) >= 0)
-            s = halfway;
-        else
-            e = halfway;
-    }
-
-    return -1;
-}
-
-template <class ObjectClass, class TypeOfCriticalSectionToUse>
-template <typename ElementComparator>
-void OwnedArray<ObjectClass, TypeOfCriticalSectionToUse>::sort (
-    [[maybe_unused]] ElementComparator& comparator,
-    bool retainOrderOfEquivalentItems) noexcept
-{
-    const ScopedLockType lock (getLock());
-
-    if (size() > 1)
-        sortArray (comparator, values.begin(), 0, size() - 1, retainOrderOfEquivalentItems);
-}
 
 } // namespace juce
