@@ -176,7 +176,7 @@ bool AudioFormatReader::read (AudioBuffer<float>* buffer,
             chans[1] = dests[0];
         }
 
-        if (! read (chans, 2, readerStartSample, numSamples, true))
+        if (! read (chans, chans[1] == nullptr ? 1 : 2, readerStartSample, numSamples, true))
             return false;
 
         // if the target's stereo and the source is mono, dupe the first channel..
